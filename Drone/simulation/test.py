@@ -14,14 +14,24 @@
 
 from __future__ import print_function
 from dronekit import connect, VehicleMode, LocationGlobalRelative
-import dronekit
 from pymavlink import mavutil
 
+import sys, os
 import time
 import uuid
 import asyncio
 import json
 import math
+
+##### Connect to AWS IoT Core
+##### 연결 전, 인증경로(.env)가 올바르게 설정되었는지 확인할 것!!
+
+sys.path.append('../../Cloud')
+import cloud_iot
+
+cloud_connect = cloud_iot.Connection()
+
+##### Connect to simulation 
 
 connection = '127.0.0.1:14550'
 
@@ -34,11 +44,12 @@ class Drone:
         self.uid = str(uuid.uuid4())
         self.drone_id = self.uid.split('-')[4]
 
+
     def getId(self):
-        print(f'Drone ID : {self.drone_id}')
+        return self.drone_id
 
     def getUUID(self):
-        print(f'Drone UUID : {self.uid}')
+        return self.uid
     
     def armCheck(self):
         check_timeout = time.time()
@@ -88,7 +99,7 @@ class Drone:
             self.vehicle.send_mavlink(msg)
             time.sleep(1)
 
-    def get_distance_metres(self, aLocation1, aLocation2):
+    def getDistanceMetres(self, aLocation1, aLocation2):
         dlat = aLocation2.lat - aLocation1.lat
         dlong = aLocation2.lon - aLocation1.lon
         result = (math.sqrt((dlat*dlat) + (dlong*dlong)) * 1.113195e5) 
@@ -101,6 +112,36 @@ class Drone:
         self.vehicle.armed = False
         self.vehicle.close()
 
+    def droneStatusLog(self, current=None):
+        log = {
+            "GPS": str(self.vehicle.gps_0),
+            "Battery": self.checkBattery(self.vehicle.battery),
+            "Heartbeat": str(self.vehicle.last_heartbeat),
+            "Mode": str(self.vehicle.mode.name),
+            "System Status": str(self.vehicle.system_status.state),
+            "Armable": self.vehicle.is_armable,
+            "Current Location": self.checkCurrentLocation(current)
+        }
+        return json.dumps(log)
+
+    def checkBattery(self, battery):
+        result = {
+            "voltage": battery.voltage,
+            "current": battery.current,
+            "level": battery.level
+        }
+        return result 
+
+    def checkCurrentLocation(self, current_gps):
+        if current_gps is None:
+            return None
+        current = {
+            "lon": current_gps.lon,
+            "lat": current_gps.lat,
+            "alt": current_gps.alt
+        }
+        return current
+
 async def connectDrone():
         return connect(connection, wait_ready=True)
 
@@ -108,8 +149,14 @@ async def connectDrone():
 loop = asyncio.get_event_loop()
 drone = Drone(loop.run_until_complete(connectDrone()), 'ICT-01')
 
+current_id = drone.getId()
+print(f'{current_id}')
+time.sleep(10)
+
+
 if(drone.armCheck()):
     drone.takeOffAlitude(3, 1.5)
+    cloud_connect.sendMessage(current_id, drone.droneStatusLog())
 else:
     print('드론 상태를 점검 후 다시 실행해 주세요!')
 
@@ -129,7 +176,7 @@ else:
 
 ##### 드론 목적지까지 이동
 
-point1 = LocationGlobalRelative(-35.361354, 149.165218, 1.5)
+point1 = LocationGlobalRelative(37.27680531, 127.12929642, 1.5)
 drone.vehicle.simple_goto(point1)
 
 current_location = drone.vehicle.location.global_relative_frame
@@ -138,9 +185,10 @@ print(current_location)
 print(point1)
 
 while True:
-    left_distance = drone.get_distance_metres(current_location, point1)
+    left_distance = drone.getDistanceMetres(current_location, point1)
     if(left_distance > 0.6):
         print(f'남은 거리 : {left_distance}m')
+        cloud_connect.sendMessage(current_id, drone.droneStatusLog(current_location))
     else:
         time.sleep(3)
         drone.landingAndShutdown()

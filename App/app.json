@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "calldrone",
-    "slug": "calldrone",
+    "name": "call_app",
+    "slug": "call_app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

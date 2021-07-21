@@ -1,0 +1,27 @@
+# DS_Store (Mac)
+.DS_Store
+
+#####   App Part  #####
+
+# Node Modules 제거
+/App/node_modules
+
+# Expo Setting
+/App/.expo
+/App/.expo-shared
+
+# Package 
+/App/package.json
+
+# Yarn Lock
+/App/yarn.lock
+
+#####   Cloud Part  #####
+
+# env 파일
+.env
+
+# 캐시 파일
+/Cloud/__pycache__
+
+#####   Drone Part  #####

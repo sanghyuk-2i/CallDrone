@@ -1,275 +1,212 @@
-import React from 'react'
-import { View, Text, StyleSheet, Image, Button,TextInput } from 'react-native'
+import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, Text, View, Animated, Dimensions, TouchableOpacity, Image, TextInput, PanResponder } from 'react-native';
+import { WebView } from 'react-native-webview';
+import Back from './common/Back';
+import MapView from './map.html';
 
+export default function DeliveryMenu({ navigation }) {
 
+  useEffect(() => {
+    slideUp();
+  })
 
+  const viewData = {
+    boxIconData: [require("../assets/icon/location/smallbox.png"), require("../assets/icon/location/midbox.png"), require("../assets/icon/location/bigbox.png")],
+    boxTextData: ['소', '중', '대'],
+    adrTextData: ['출발', '도착']
+  }
 
-export default function DeliveryMenu() {
+  const deviceHeight = Dimensions.get('window').height;
+  const pan = useRef(new Animated.ValueXY({ x: 0, y: deviceHeight })).current;
+
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponderCapture: () => true,
+    onPanResponderMove: (e, gesture) => {
+      if (gesture.moveY >= deviceHeight - 430) {
+        pan.setValue({ x: 0, y: gesture.moveY })
+      }
+    },
+    onPanResponderRelease: (e, gesture) => {
+      let num = 0;
+      (gesture.moveY >= deviceHeight - 200) ? num = 100 : num = 430
+      Animated.spring(
+        pan,
+        { toValue: { x: 0, y: deviceHeight - num }, useNativeDriver: false },
+      ).start();
+    },
+  });
+
+  const slideUp = () => {
+    Animated.timing(pan.y, {
+      toValue: deviceHeight - 430,
+      duration: 500,
+      useNativeDriver: false
+    }).start();
+  }
+
   return (
-    <View style={styles.container}>
-
-      {/* Header */}
-      <View style={styles.HeaderWrapper}>
-        <View style={styles.HeaderCircleOne}>
-            <Image source={require('../assets/circleicon.png')}></Image>
+    <>
+      <StatusBar style='auto' />
+      <Back navigation={navigation} css={{ position: 'absolute', zIndex: 99 }} />
+      <Animated.View style={[styles.menu, pan.getLayout()]} >
+        <Animated.View {...panResponder.panHandlers} style={[styles.viewDrawer]}>
+          <View style={styles.drawer}></View>
+        </Animated.View>
+        <View style={styles.viewLocation}>
+          <View style={styles.ltnIcon}>
+            <View style={styles.circle}></View>
+            <View style={styles.straight}></View>
+            <View style={styles.circle}></View>
+          </View>
+          <View style={styles.ltnAddress}>
+            {
+              viewData.adrTextData.map((text, i) =>
+                <View style={styles.addressCheck} key={i}>
+                  <Text style={styles.checkTitle}>{text}</Text>
+                  <TextInput style={styles.checkInput} />
+                </View>
+              )
+            }
+          </View>
         </View>
-        <View style={styles.HeaderStartPoint}>
-          <Text style={styles.HeaderStartPointText}>출발</Text>
+        <View style={styles.viewBox}>
+          <Text style={styles.boxTitle}>배송 유형</Text>
+          <View style={styles.boxSelect}>
+            {
+              viewData.boxIconData.map((v, i) =>
+                <TouchableOpacity style={styles.boxButton} key={i}>
+                  <Image style={styles.boxIcon} source={viewData.boxIconData[i]} />
+                  <Text style={styles.boxText}>{viewData.boxTextData[i]}</Text>
+                </TouchableOpacity>)
+            }
+          </View>
         </View>
-        <View style={styles.HeaderGPS}> 
-          <Image source={require('../assets/gpsicon.png')}></Image>
-        </View>
-      </View>
-
-      {/*FirstLine*/}
-      <View style={styles.FirstLineWrapper}>
-        <View style={styles.FirstRowLine}>
-          <Image source={require('../assets/rowline.png')}></Image>
-        </View>
-        <View style={styles.GpsLine}>
-          <TextInput style={styles.TextGpsline}></TextInput>
-          {/*<Image style={styles.ColTextGpsline} source={require('../assets/colline.png')}></Image>*/}
-        </View>
-      </View>
-
-      {/*TwoLine*/}
-      <View style={styles.TwoLineWrapper}>
-        <View style={styles.TwoLineCircleTWo}>
-          <Image source={require('../assets/circleicon.png')}></Image>
-        </View>
-        <View style={styles.TwoLineDestination}>
-          <Text style={styles.TwoLineDestinationText}>도착</Text>
-        </View>
-      </View>
-
-      {/* ThirdLine*/}
-      <View style={styles.ThirdLineWrapper}>
-        <View style={styles.GpsLine}>
-          <TextInput style={styles.TextGpsline}></TextInput>
-        </View>
-      </View>
-
-      {/*DeliveryType*/}
-      <View style={styles.DeliveryTypeWrapper}>
-        <View>
-          <Text style={styles.DeliveryTypeText}>배송 유형</Text>
-        </View>
-      </View> 
-
-      {/*BoxSize*/}
-      <View style={styles.BoxSizeWrapper}>
-
-        <View style={styles.BoxSizeSmallWrapper}>
-            <Image style={styles.BoxSizeSmallIcon} source={require('../assets/smallbox.png')}></Image>
-            <Text style={styles.BoxSizeSmallTextText}>소</Text>
-        </View>
-
-        <View style={styles.BoxSizeMiddleWrapper}>
-            <Image style={styles.BoxSizeMiddleIcon} source={require('../assets/midbox.png')}></Image>
-            <Text style={styles.BoxSizeMiddleTextText}>중</Text>
-        </View>
-        <View style={styles.BoxSizeBigWrapper}>
-            <Image style={styles.BoxSizeBigIcon} source={require('../assets/bigbox.png')}></Image>
-            <Text style={styles.BoxSizeBigTextText}>대</Text>
-        </View>
-      
-      </View>
-
-            
-      <View style={styles.RButtonWrapper}>
-        <Button style={styles.RButton}
-          onPress={() => {
-            this.props.navigation.navigate('Menu') }}
-          title="배송요청">
-        </Button>
-      </View>
-
-
-      
-
-    </View>
+        <TouchableOpacity style={styles.reqButton}><Text style={styles.btnText}>배송 요청</Text></TouchableOpacity>
+      </Animated.View>
+      <WebView
+        style={styles.container}
+        originWhitelist={['*']}
+        source={MapView} />
+    </>
   )
 }
 
-
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    width: '100%',
+    height: '100%',
+    zIndex: 1
   },
-  //
-  HeaderWrapper:{
-    flexDirection: "row",
-    marginTop:30,
+  menu: {
+    display: 'flex',
+    position: 'absolute',
+    backgroundColor: 'white',
+    width: '100%',
+    height: '55%',
+    alignItems: 'center',
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    zIndex: 99
   },
-  HeaderCircleOne:{
-      marginLeft:20,
-      marginTop:3,
+  viewDrawer: {
+    width: '100%',
+    height: 40
   },
-  HeaderStartPoint:{
-    marginLeft:20,
+  drawer: {
+    width: 48,
+    height: 5,
+    backgroundColor: '#E8E8E8',
+    borderRadius: 100,
+    marginVertical: 14,
+    justifyContent: 'center',
+    alignSelf: 'center'
   },
-  HeaderStartPointText:{
-    fontSize:20,
-    fontWeight:'bold',
-    color:'black',
+  viewLocation: {
+    display: 'flex',
+    flexDirection: 'row'
   },
-  HeaderGPS:{
-    alignSelf: "flex-end",
-    marginLeft:220,
+  ltnIcon: {
+    paddingRight: 28
   },
-  //
-  FirstLineWrapper:{
-    flexDirection: "row",
-    marginTop:2,
-    marginLeft:7,
+  circle: {
+    borderWidth: 5,
+    borderRadius: 50,
+    width: 24,
+    height: 24
   },
-  FirstRowLine:{
-    marginLeft:22,
+  straight: {
+    width: 4,
+    height: 50,
+    backgroundColor: 'black',
+    alignSelf: 'center',
+    marginVertical: 4
   },
-  GpsLine:{
-    marginLeft:10,
-    width:300,
+  ltnAddress: {
+    paddingRight: 18
   },
-  TextGpsline:{
-    marginLeft:15,
-    borderBottomColor:'black',
-    borderBottomWidth:2,
+  addressCheck: {
+
   },
-  ColTextGpsline:{
-    //패스
+  checkTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    paddingTop: 4
   },
-  //
-  TwoLineWrapper:{
-    flexDirection: "row",
-    //marginTop:30,
+  checkInput: {
+    width: 260,
+    borderBottomWidth: 3,
+    borderBottomColor: '#C4C4C4',
+    marginVertical: 19.5
   },
-  TwoLineCircleTWo:{
-    marginLeft:21,
-    marginTop:5,
+  viewBox: {
+    paddingBottom: 8
   },
-  TwoLineDestination:{
-    marginLeft:20,
+  boxTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    paddingVertical: 5
   },
-  TwoLineDestinationText:{
-    fontSize:20,
-    fontWeight:'bold',
-    color:'black',
+  boxSelect: {
+    display: 'flex',
+    flexDirection: 'row'
   },
-  //
-  ThirdLineWrapper:{
-    marginRight:88,
-    marginLeft:22,
-  },
-  //
-  DeliveryTypeWrapper:{
-    marginLeft:23,
-    marginTop:20,
-  },
-  DeliveryTypeText:{
-    fontSize:20,
-    fontWeight:'bold',
-    color:'black',
-  },
-  //
-  BoxSizeWrapper:{
-    flexDirection: "row",
-    justifyContent:'center',
-    marginTop:10,
-  },
-  BoxSizeSmallWrapper:{
-    backgroundColor: "#f6f6f6",
-    borderRadius: 15,
+  boxButton: {
     width: 100,
-    height: 90,
-    margin:10,
+    height: 80,
+    backgroundColor: '#F6F6F6',
+    borderRadius: 8,
+    marginHorizontal: 5,
+    marginVertical: 10,
+    justifyContent: 'space-evenly',
+    alignItems: 'center'
   },
-  BoxSizeSmallIcon:{
+  boxIcon: {
     width: 30,
-    height: 30,
-    alignSelf: "center", 
-    marginTop:20,
+    height: 30
   },
-  BoxSizeSmallText:{ 
-
+  boxText: {
+    fontSize: 14,
+    fontWeight: '800'
   },
-  BoxSizeSmallTextText:{
-    color: 'black',
-    fontSize: 15,
-    fontWeight: 'bold',
-    alignSelf: "center",
-    marginTop:5,
+  reqButton: {
+    width: '90%',
+    height: '13%',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 100,
+    justifyContent: 'center',
+    marginTop: 8
   },
-  BoxSizeMiddleWrapper:{
-    backgroundColor: "#f6f6f6",
-    borderRadius: 15,
-    width: 100,
-    height: 90,
-    margin:10,
-  },
-  BoxSizeMiddleIcon:{
-    width: 30,
-    height: 30,
-    alignSelf: "center", 
-    marginTop:20,
-  },
-  BoxSizeMiddleText:{
-
-  },
-  BoxSizeMiddleTextText:{
-    color: 'black',
-    fontSize: 15,
-    fontWeight: 'bold',
-    alignSelf: "center",
-    marginTop:5,
-    
-  },
-  BoxSizeBigWrapper:{
-    backgroundColor: "#f6f6f6",
-    borderRadius: 15,
-    width: 100,
-    height: 90,
-    margin:10,
-   
-  },
-  BoxSizeBigIcon:{
-    width: 30,
-    height: 30,
-    alignSelf: "center", 
-    marginTop:20,
-  },
-  BoxSizeBigText:{
-
-  },
-  BoxSizeBigTextText:{
-    color: 'black',
-    fontSize: 15,
-    fontWeight: 'bold',
-    alignSelf: "center",
-    marginTop:5,
-  },
-  RButtonWrapper:{
-    marginTop:20,
-    alignSelf: "center",  
-    width:300,
-    
-  },
-  RButton:{
-  
-    
-  },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  btnText: {
+    color: 'white',
+    alignSelf: 'center',
+    fontSize: 16,
+    fontWeight: '600'
+  }
 });
-

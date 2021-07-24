@@ -1,124 +1,121 @@
-import React from 'react'
-import {  View, Text, Image, StyleSheet, Button } from 'react-native'
-export default function MonitoringMenu() {
+import React, { useEffect, useRef, useState } from 'react'
+import { View, Text, Image, StyleSheet, Button, TouchableOpacity, Dimensions, Animated, PanResponder } from 'react-native'
+import Back from './common/Back';
+
+import MonitoringDetailMenu from './MonitoringDetailMenu';
+
+export default function MonitoringMenu({ navigation }) {
+
+    const [back, setBack] = useState(true);
+    const [status, setStatus] = useState({
+        color: ['red', 'red'],
+        text: ['OFF', 'Disconnect']
+    });
+
+    const slideRef = useRef();
+
+    const showSlide = () => {
+        setBack(!back);
+        slideRef.current.slideUp();
+    }
+
     return (
-
-    <View style={styles.container}>
-        <View style={styles.HeaderWrapper}>
-            <View style={styles.HeaderSeries}>
-                <Text style={styles.HeaderSeriesText}>Drone Series 1</Text>
+        <>
+            <View style={styles.container}>
+                {
+                    back ? <Back navigation={navigation} /> : null
+                }
+                <View style={styles.HeaderWrapper}>
+                    <View style={styles.HeaderSeries}>
+                        <Text style={styles.HeaderSeriesText}>Drone Series 1</Text>
+                    </View>
+                    <View style={styles.HeaderId}>
+                        <Text style={styles.HeaderIdText}>#ID12345</Text>
+                    </View>
+                    <Image
+                        style={styles.HeaderImageIcon}
+                        source={require('../assets/drone2.png')}
+                        resizeMode={'cover'} />
+                </View>
+                <View style={styles.DetailWrapper}>
+                    {
+                        [...Array(2)].map((v, i) =>
+                            <View style={styles.simpleContainer} key={i}>
+                                <View style={[styles.simpleIcon, { backgroundColor: status.color[i] }]}></View>
+                                <Text style={styles.simpleText}>{status.text[i]}</Text>
+                            </View>
+                        )
+                    }
+                </View>
+                <View style={styles.DetailClick}>
+                    <TouchableOpacity onPress={() => showSlide()}><Text style={styles.DetailClickText}>세부사항</Text></TouchableOpacity>
+                </View>
             </View>
-            <View style={styles.HeaderId}>
-                <Text style={styles.HeaderIdText}>#ID12345</Text>
-            </View>
-            <View style={styles.HeaderImage}>
-                <Image
-                    style={styles.HeaderImageIcon} 
-                    source={require('../assets/drone2.png')}>
-                </Image>
-            </View>
-
-        </View>
-        <View style={styles.DetailWrapper}>
-            <View style={styles.DetailOne}>
-                <Image
-                    style={styles.DetailOneIcon} 
-                    source={require('../assets/greencircle.png')}>
-                </Image>
-                <Text style={styles.DetailOneText}>Online</Text>
-            </View>
-            <View style={styles.DetailTwo}>
-                <Image
-                    style={styles.DetailTwoIcon} 
-                    source={require('../assets/greencircle.png')}>
-                </Image>
-                <Text style={styles.DetailTwoText}>Ready</Text>
-                
-            </View>
-        </View>
-        <View style={styles.DetailClick}>
-            <Text style={styles.DetailClickText}>세부사항 </Text>
-        </View>
-
-
-    </View>
-
+            <MonitoringDetailMenu back={setBack} ref={slideRef} />
+        </>
     )
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        
+        display: 'flex'
     },
-    HeaderWrapper:{
-        marginTop:110,
+    HeaderWrapper: {
+        marginTop: 100,
         alignSelf: "center",
     },
-    HeaderSeries:{
+    HeaderSeries: {
         alignSelf: "center",
     },
-    HeaderSeriesText:{
-        fontSize:20,
-        fontWeight:'bold',
-        color:'black',
+    HeaderSeriesText: {
+        fontSize: 20,
+        fontWeight: '500',
+        color: 'black',
     },
-    HeaderId:{
+    HeaderId: {
         alignSelf: "center",
     },
-    HeaderIdText:{
-        fontSize:43,
-        fontWeight:'bold',
-        color:'black',
+    HeaderIdText: {
+        fontSize: 48,
+        fontWeight: '700',
+        color: 'black',
     },
-    HeaderImage:{
-        marginTop:15,
+    HeaderImageIcon: {
+        width: 300,
+        height: 300,
+        marginVertical: 36,
     },
-    HeaderImageIcon:{
-
-    },
-    DetailWrapper:{
+    DetailWrapper: {
         alignSelf: "center",
     },
-
-    DetailOne:{
-        marginTop:20,
+    simpleContainer: {
         flexDirection: "row",
+        marginVertical: 14
     },
-    DetailOneIcon:{
-       marginTop:3,
-       marginRight:20,
+    simpleIcon: {
+        width: 30,
+        height: 30,
+        backgroundColor: 'black',
+        borderRadius: 50,
+        alignSelf: 'center'
     },
-    DetailOneText:{
-        fontSize:20,
-        fontWeight:'bold',
-        color:'black',
+    simpleText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: 'black',
+        marginHorizontal: 36,
+        alignSelf: 'center',
     },
-    DetailTwo:{
-        marginTop:20,
-        flexDirection: "row",
-    },
-    DetailTwoIcon:{
-        marginTop:3,
-        marginRight:20,
-    },
-    DetailTwoText:{
-        fontSize:20,
-        fontWeight:'bold',
-        color:'black',
-    },
-    DetailClick:{
+    DetailClick: {
         alignSelf: "center",
-        marginTop:30,
-        marginLeft:20,
-
+        marginVertical: 14
     },
-    DetailClickText:{
-        fontSize:20,
-        fontWeight:'bold',
-        color:'gray',
-        borderBottomColor:'gray',
-        borderBottomWidth:2,
+    DetailClickText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: 'gray',
+        borderBottomColor: 'gray',
+        borderBottomWidth: 2,
     },
 });
 

@@ -1,27 +1,14 @@
-import React, { Component } from 'react'
+import React from 'react'
+import { StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createAppContainer } from 'react-navigation';
-import { createStackNavigator } from 'react-navigation-stack';
+import StackNavigator from './components/StackNavigator';
 
-
-import DeliveryMenu from './components/DeliveryMenu';
-import Menu from './components/Menu';
-
-
-const Stack = createStackNavigator();
-
-
-class App extends Component {
-    render() {
-        return (
-            <NavigationContainer>
-                <Stack.Navigator>
-                    <Stack.Screen name='DeliveryMenu' component={DeliveryMenu} />
-                    <Stack.Screen name='Menu' component={Menu} />
-                </Stack.Navigator>
-            </NavigationContainer>
-        )
-    }
+export default function App() {
+    return (
+        <NavigationContainer>
+            <StackNavigator />
+        </NavigationContainer>
+    )
 }
 const styles = StyleSheet.create({
     background: {
@@ -31,5 +18,3 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     }
 });
-
-export default App;

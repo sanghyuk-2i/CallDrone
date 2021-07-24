@@ -1,160 +1,193 @@
-import React from 'react'
-import { View, Text, Button ,StyleSheet,Image} from 'react-native'
-export default function RealTimeMenu() {
+import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, Text, View, Animated, Dimensions, TouchableOpacity, Image, TextInput, PanResponder } from 'react-native';
+import { WebView } from 'react-native-webview';
+import Back from './common/Back';
+import MapView from './map.html';
+
+export default function RealTimeMenu({ navigation }) {
+
+    useEffect(() => {
+        slideUp();
+    })
+
+    const viewData = {
+        boxIconData: [require("../assets/icon/location/smallbox.png"), require("../assets/icon/location/midbox.png"), require("../assets/icon/location/bigbox.png")],
+        boxTextData: ['소', '중', '대'],
+        adrTextData: ['출발', '도착']
+    }
+
+    const deviceHeight = Dimensions.get('window').height;
+    const pan = useRef(new Animated.ValueXY({ x: 0, y: deviceHeight })).current;
+
+    const panResponder = PanResponder.create({
+        onStartShouldSetPanResponderCapture: () => true,
+        onPanResponderMove: (e, gesture) => {
+            if (gesture.moveY >= deviceHeight - 330) {
+                pan.setValue({ x: 0, y: gesture.moveY })
+            }
+        },
+        onPanResponderRelease: (e, gesture) => {
+            let num = 0;
+            (gesture.moveY >= deviceHeight - 200) ? num = 100 : num = 340
+            Animated.spring(
+                pan,
+                { toValue: { x: 0, y: deviceHeight - num }, useNativeDriver: false },
+            ).start();
+        },
+    });
+
+    const slideUp = () => {
+        Animated.timing(pan.y, {
+            toValue: deviceHeight - 330,
+            duration: 500,
+            useNativeDriver: false
+        }).start();
+    }
+
     return (
-    <View style={styles.container}>
-
-        {/*Header*/}
-        <View style={styles.HeaderWrapper}>
-            <View style={styles.HeaderCircle}>
-                <Image source={require('../assets/circleicon.png')}></Image>
-            </View>
-            <View style={styles.HeaderStartPoint}>
-                <Text style={styles.StartPointText} >경기도 화성시 동탄 반석로 277 값 받아오기</Text>
-            </View>
-
-        </View>
-
-        {/*RowLine*/}
-        <View style={styles.RowLineWrapper}>
-            <View style={styles.RowLine}>
-                <Image source={require('../assets/rowline.png')}></Image>       
-            </View>
-        </View>
-
-        {/*DestinationLine*/}
-        <View style={styles.DestinationWrapper}>
-            <View style={styles.DestinationCircle}>
-                <Image source={require('../assets/circleicon.png')}></Image>
-            </View>
-            <View style={styles.DestinationBin}>
-                <Text style={styles.DestinationPointText} >경기도 용인시 기흥구 강남서로58번길 값 받아오기</Text>
-            </View>
-
-        </View>
-        
-        {/*ScheduleTime*/}
-        <View style={styles.ScheduleTimeWrapper}>
-            <View style={styles.TimeTextWrapper}>
-                <Text style={styles.TimeText}>50</Text>   
-            </View>
-            <View style={styles.PredicitonTextWrapper}>
-                <Text style={styles.PrdicitonText}>분 후 도착 예정</Text>   
-            </View>
-
-        </View>
-        {/*TwoButton*/}
-        <View style={styles.TwoButtonWrapper}>
-            <View style={styles.ShareButton}>
-                <Button 
-                    title="공유하기" 
-                    color='black'> 
-                </Button>
-            </View>
-            <View style={styles.CancelButton}> 
-                <Button 
-                    title="배송 취소"
-                    color='black'
-                    >
-                         
-                </Button>
-            </View>
-        </View>
-
-    </View>
+        <>
+            <StatusBar style='auto' />
+            <Back navigation={navigation} css={{ position: 'absolute', zIndex: 99 }} />
+            <Animated.View style={[styles.menu, pan.getLayout()]} >
+                <Animated.View {...panResponder.panHandlers} style={[styles.viewDrawer]}>
+                    <View style={styles.drawer}></View>
+                </Animated.View>
+                <View style={styles.viewLocation}>
+                    <View style={styles.ltnIcon}>
+                        <View style={styles.circle}></View>
+                        <View style={styles.straight}></View>
+                        <View style={styles.circle}></View>
+                    </View>
+                    <View style={styles.ltnAddress}>
+                        <View style={styles.addressContainer}>
+                            <Text style={styles.addressText}>경기도 화성시 동탄반석로 </Text>
+                        </View>
+                        <View style={styles.addressContainer}>
+                            <Text style={styles.addressText}>경기도 용인시 기흥구</Text>
+                        </View>
+                    </View>
+                </View>
+                <View style={styles.viewBox}>
+                    <Text style={styles.boxMinute}>50</Text>
+                    <Text style={styles.boxText}>분 후 도착 예정</Text>
+                </View>
+                <View style={styles.viewButton}>
+                    <TouchableOpacity style={styles.reqButton}><Text style={styles.btnText}>공유하기</Text></TouchableOpacity>
+                    <TouchableOpacity style={styles.reqButton}><Text style={[styles.btnText, { color: '#E96D65' }]}>배송 취소</Text></TouchableOpacity>
+                </View>
+            </Animated.View>
+            <WebView
+                style={styles.container}
+                originWhitelist={['*']}
+                source={MapView} />
+        </>
     )
 }
 
-
 const styles = StyleSheet.create({
     container: {
-      flex: 1,
+        width: '100%',
+        height: '100%',
+        zIndex: 1
     },
-    HeaderWrapper:{
-        flexDirection: "row",
-        marginTop:50,
+    menu: {
+        display: 'flex',
+        position: 'absolute',
+        backgroundColor: 'white',
+        width: '100%',
+        height: '55%',
+        alignItems: 'center',
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 20,
+        zIndex: 99
     },
-    HeaderCircle:{
-        marginLeft:10,
-        marginTop:3,
+    viewDrawer: {
+        width: '100%',
+        height: 40
     },
-    HeaderStartPoint:{
-        
+    drawer: {
+        width: 48,
+        height: 5,
+        backgroundColor: '#E8E8E8',
+        borderRadius: 100,
+        marginVertical: 14,
+        justifyContent: 'center',
+        alignSelf: 'center'
     },
-    StartPointText:{
-        fontSize:15,
-        fontWeight:'bold',
-        color:'black',
-        marginTop:1,
-        marginLeft:5,
+    viewLocation: {
+        display: 'flex',
+        height: '28%',
+        flexDirection: 'row',
     },
-    RowLineWrapper:{
-        marginLeft:10,
-        marginTop:5,
+    ltnIcon: {
+        paddingRight: 14
     },
-    RowLine:{
-        marginLeft:9,
+    circle: {
+        borderWidth: 5,
+        borderRadius: 50,
+        width: 24,
+        height: 24
     },
-    DestinationWrapper:{
-        flexDirection: "row",
-        marginTop:2,
-        marginLeft:1,
+    straight: {
+        width: 4,
+        height: 30,
+        backgroundColor: 'black',
+        alignSelf: 'center',
+        marginVertical: 4
     },
-    DestinationCircle:{
-        marginLeft:10,
-        marginTop:3,
+    ltnAddress: {
+        width: '75%',
+        height: '100%',
     },
-    DestinationBin:{    
-        //
+    addressContainer: {
+        width: '100%',
+        height: '50%',
     },
-    DestinationPointText:{
-        fontSize:15,
-        fontWeight:'bold',
-        color:'black',
-        marginTop:1,
-        marginLeft:5,
+    addressText: {
+        width: '100%',
+        paddingTop: 4,
+        fontWeight: '600'
     },
-    ScheduleTimeWrapper:{
-        flexDirection: "row",
-        marginTop:10,
-        alignSelf: "center",
+    viewBox: {
+        display: 'flex',
+        flexDirection: 'row',
+        paddingBottom: 12,
     },
-    TimeTextWrapper:{
+    boxMinute: {
+        fontSize: 52,
+        fontWeight: '700',
+        paddingRight: 18
     },
-    TimeText:{
-        fontSize:50,
-        fontWeight:'bold',
-        color:'black',
+    boxText: {
+        fontSize: 24,
+        fontWeight: '600',
+        alignSelf: 'flex-end',
+        paddingBottom: 8
     },
-    PredicitonTextWrapper:{
-        marginTop:20,
-        marginLeft:20,
+    viewButton: {
+        height: '12%',
+        display: 'flex',
+        flexDirection: 'row',
     },
-    PrdicitonText:{
-        fontSize:25,
-        fontWeight:'bold',
-        color:'black',
-
+    reqButton: {
+        width: '40%',
+        height: '100%',
+        marginHorizontal: 6,
+        backgroundColor: '#F6F6F6',
+        borderRadius: 100,
+        justifyContent: 'center',
     },
-    TwoButtonWrapper:{
-        flexDirection: "row",
-        alignSelf: "center",
-        marginTop:10,
-        width:200,
-        
-        
-    },
-    ShareButton:{
-        width:100,
-        marginRight:5,
-        
-    },
-    CancelButton:{
-        width:100,
-        marginLeft:5,
-       
-    },
-
-
-
-  });
+    btnText: {
+        color: '#4B9460',
+        alignSelf: 'center',
+        fontSize: 16,
+        fontWeight: '700'
+    }
+});

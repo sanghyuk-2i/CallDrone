@@ -1,7 +1,8 @@
-import React from 'react'
-import { View, Text, StyleSheet, SafeAreaView, Image, TouchableOpacity } from 'react-native'
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, Image, TouchableOpacity } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
-export default function Menu({ navigation }) {
+export default function Menu({ navigation, user }) {
 
     const viewData = {
         stackName: ['delivery', 'receipt', 'realtime', 'setting', 'monitoring'],
@@ -10,45 +11,48 @@ export default function Menu({ navigation }) {
     }
 
     return (
-        <View style={styles.container}>
-            <View style={styles.headerWrapper}>
-                <Text style={styles.headerText}>Interceptor</Text>
-                <View style={styles.profileBin}>
-                    <Image
-                        source={require('../assets/ict.png')}
-                        style={styles.profileImage} >
-                    </Image>
-                    <Text style={styles.profileText}>한이음</Text>
+        <>
+            <StatusBar style={'auto'} />
+            <View style={styles.container}>
+                <View style={styles.headerWrapper}>
+                    <Text style={styles.headerText}>Interceptor</Text>
+                    <View style={styles.profileBin}>
+                        <Image
+                            source={{ uri: user.photoUrl }}
+                            style={styles.profileImage} >
+                        </Image>
+                        <Text style={styles.profileText}>{user.name}</Text>
+                    </View>
+                </View>
+                <View style={styles.viewMenu}>
+                    {
+                        viewData.titleData.map((v, i) => {
+                            if (i === 2) {
+                                return (
+                                    <TouchableOpacity style={styles.menuButtonTwo} key={i} onPress={() => navigation.navigate(viewData.stackName[i])}>
+                                        <Text style={styles.menuText}>{v}</Text>
+                                        <Image
+                                            source={viewData.iconData[i]}
+                                            style={styles.menuIconTwo} >
+                                        </Image>
+                                    </TouchableOpacity>
+                                )
+                            } else {
+                                return (
+                                    <TouchableOpacity style={styles.menuButton} key={i} onPress={() => navigation.navigate(viewData.stackName[i])}>
+                                        <Text style={styles.menuText}>{v}</Text>
+                                        <Image
+                                            source={viewData.iconData[i]}
+                                            style={styles.menuIcon} >
+                                        </Image>
+                                    </TouchableOpacity>
+                                )
+                            }
+                        })
+                    }
                 </View>
             </View>
-            <View style={styles.viewMenu}>
-                {
-                    viewData.titleData.map((v, i) => {
-                        if (i === 2) {
-                            return (
-                                <TouchableOpacity style={styles.menuButtonTwo} key={i} onPress={() => navigation.navigate(viewData.stackName[i])}>
-                                    <Text style={styles.menuText}>{v}</Text>
-                                    <Image
-                                        source={viewData.iconData[i]}
-                                        style={styles.menuIconTwo} >
-                                    </Image>
-                                </TouchableOpacity>
-                            )
-                        } else {
-                            return (
-                                <TouchableOpacity style={styles.menuButton} key={i} onPress={() => navigation.navigate(viewData.stackName[i])}>
-                                    <Text style={styles.menuText}>{v}</Text>
-                                    <Image
-                                        source={viewData.iconData[i]}
-                                        style={styles.menuIcon} >
-                                    </Image>
-                                </TouchableOpacity>
-                            )
-                        }
-                    })
-                }
-            </View>
-        </View>
+        </>
     )
 }
 

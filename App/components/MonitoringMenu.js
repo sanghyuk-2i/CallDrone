@@ -1,3 +1,4 @@
+import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react'
 import { View, Text, Image, StyleSheet, Button, TouchableOpacity, Dimensions, Animated, PanResponder } from 'react-native'
 import Back from './common/Back';
@@ -21,6 +22,7 @@ export default function MonitoringMenu({ navigation }) {
 
     return (
         <>
+            <StatusBar style={'auto'} />
             <View style={styles.container}>
                 {
                     back ? <Back navigation={navigation} /> : null

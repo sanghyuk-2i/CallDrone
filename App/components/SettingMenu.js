@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
-import { View, Text, Image, StyleSheet, Button, Switch, TouchableOpacity } from 'react-native'
+import React, { useState } from 'react';
+import { View, Text, Image, StyleSheet, Button, Switch, TouchableOpacity } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import Back from './common/Back';
 
-export default function SettingMenu({ navigation }) {
+export default function SettingMenu({ navigation, user }) {
 
     const [isEnabled, setIsEnabled] = useState(false);
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
@@ -13,69 +14,71 @@ export default function SettingMenu({ navigation }) {
     }
 
     return (
-        <View style={styles.container}>
-            <Back navigation={navigation} />
-            <View style={styles.TitleWrapper}>
-                <View style={styles.Title}>
-                    <Text style={styles.TitleText}>설정</Text>
+        <>
+            <StatusBar style={'auto'} />
+            <View style={styles.container}>
+                <Back navigation={navigation} />
+                <View style={styles.TitleWrapper}>
+                    <View style={styles.Title}>
+                        <Text style={styles.TitleText}>설정</Text>
+                    </View>
                 </View>
-            </View>
-
-            <View style={styles.SetMenuWrapper}>
-                <View style={styles.ProfileWrapper}>
-                    <Image
-                        source={require('../assets/ict.png')}
-                        style={styles.Profile}
-                        resizeMode={'contain'}>
-                    </Image>
-                    <Text style={styles.ProfileText}>한이음</Text>
-                </View>
-                <View style={styles.WhiteLineWrapper}></View>
-                {
-                    viewData.textData.map((v, i) =>
-                        <TouchableOpacity style={styles.buttonContainer} key={i}>
-                            <Text style={styles.buttonText}>{v}</Text>
-                            <Image
-                                source={require('../assets/icon/setting/right.png')}
-                                style={styles.ProfileIcon} >
-                            </Image>
-                        </TouchableOpacity>
-                    )
-                }
-                <View style={styles.WhiteLineWrapper}></View>
-                <View style={styles.buttonContainer}>
-                    <Text style={styles.buttonText}>다크모드</Text>
-                    <Switch
-                        trackColor={{ false: "#e5386d", true: "#e5386d" }}
-                        thumbColor={isEnabled ? "white" : "white"}
-                        ios_backgroundColor="#e5386dre"
-                        onValueChange={toggleSwitch}
-                        value={isEnabled} />
-                </View>
-                <TouchableOpacity style={styles.buttonContainer}>
-                    <Text style={styles.buttonText}>고객센터</Text>
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.BottomHeaderWrapper}>
-                <View style={styles.BottomWrapper}>
-                    <TouchableOpacity><Text style={styles.Logout}>로그아웃</Text></TouchableOpacity>
-                    <TouchableOpacity><Text style={styles.bottomText}>개인정보처리방침</Text></TouchableOpacity>
-                    <Text style={styles.bottomText}>© 2021. Interceptor all rights reserved.</Text>
-                    <View style={styles.BottomImage}>
-                        {
-                            viewData.bottomIcon.map((v, i) =>
+                <View style={styles.SetMenuWrapper}>
+                    <View style={styles.ProfileWrapper}>
+                        <Image
+                            source={{ uri: user.photoUrl }}
+                            style={styles.Profile}
+                            resizeMode={'contain'}>
+                        </Image>
+                        <Text style={styles.ProfileText}>{user.name}</Text>
+                    </View>
+                    <View style={styles.WhiteLineWrapper}></View>
+                    {
+                        viewData.textData.map((v, i) =>
+                            <TouchableOpacity style={styles.buttonContainer} key={i}>
+                                <Text style={styles.buttonText}>{v}</Text>
                                 <Image
-                                    source={v}
-                                    style={styles.hanImage}
-                                    resizeMode={'contain'}
-                                    key={i} />
-                            )
-                        }
+                                    source={require('../assets/icon/setting/right.png')}
+                                    style={styles.ProfileIcon} >
+                                </Image>
+                            </TouchableOpacity>
+                        )
+                    }
+                    <View style={styles.WhiteLineWrapper}></View>
+                    <View style={styles.buttonContainer}>
+                        <Text style={styles.buttonText}>다크모드</Text>
+                        <Switch
+                            trackColor={{ false: "#e5386d", true: "#e5386d" }}
+                            thumbColor={isEnabled ? "white" : "white"}
+                            ios_backgroundColor="#e5386dre"
+                            onValueChange={toggleSwitch}
+                            value={isEnabled} />
+                    </View>
+                    <TouchableOpacity style={styles.buttonContainer}>
+                        <Text style={styles.buttonText}>고객센터</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.BottomHeaderWrapper}>
+                    <View style={styles.BottomWrapper}>
+                        <TouchableOpacity><Text style={styles.Logout}>로그아웃</Text></TouchableOpacity>
+                        <TouchableOpacity><Text style={styles.bottomText}>개인정보처리방침</Text></TouchableOpacity>
+                        <Text style={styles.bottomText}>© 2021. Interceptor all rights reserved.</Text>
+                        <View style={styles.BottomImage}>
+                            {
+                                viewData.bottomIcon.map((v, i) =>
+                                    <Image
+                                        source={v}
+                                        style={styles.hanImage}
+                                        resizeMode={'contain'}
+                                        key={i} />
+                                )
+                            }
+                        </View>
                     </View>
                 </View>
             </View>
-        </View>
+        </>
     )
 }
 
@@ -121,7 +124,7 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 35,
-        backgroundColor: 'black'
+        backgroundColor: 'white'
     },
     ProfileText: {
         fontSize: 18,

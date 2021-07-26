@@ -25,6 +25,16 @@ const MonitoringDetailMenu = forwardRef((props, ref) => {
         textThree: ['℃', 'm/s']
     }
 
+    const { drone } = props;
+    const checkData = {
+        dataOne: [drone.altitude + 'M', drone.battery + '%', drone.temperature + '℃'],
+        dataTwo: [[drone.gps, drone.connection], [drone.speed, drone.rotation]]
+    }
+
+    const changeStatus = (check) => {
+        return (check) ? 'ON' : 'OFF';
+    }
+
     const deviceHeight = Dimensions.get('window').height;
     const pan = useRef(new Animated.ValueXY({ x: 0, y: deviceHeight })).current;
 
@@ -56,7 +66,7 @@ const MonitoringDetailMenu = forwardRef((props, ref) => {
                     {
                         viewData.textOne.map((v, i) =>
                             <View style={[styles.valueContain, { width: '33.3%' }]} key={i}>
-                                <Text style={styles.valueText}>3700M</Text>
+                                <Text style={styles.valueText}>{checkData.dataOne[i]}</Text>
                                 <View style={styles.explainContain}>
                                     <Image style={styles.explainIcon} source={viewData.iconOne[i]} />
                                     <Text style={styles.explainText}>{v}</Text>
@@ -72,7 +82,7 @@ const MonitoringDetailMenu = forwardRef((props, ref) => {
                                 {
                                     viewData.iconTwo.map((icon, j) =>
                                         <View style={[styles.valueContain, { width: '50%' }]} key={j}>
-                                            <Text style={styles.valueText}>{"3700"}M</Text>
+                                            <Text style={styles.valueText}>{(i == 0) ? changeStatus(checkData.dataTwo[i][j]) : checkData.dataTwo[i][j]}</Text>
                                             <View style={styles.explainContain}>
                                                 <Image style={styles.explainIcon} source={viewData.iconTwo[i][j]} />
                                                 <Text style={styles.explainText}>{viewData.textTwo[i][j]}</Text>

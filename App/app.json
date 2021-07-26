@@ -31,6 +31,9 @@
     "extra": {
       "LOGIN_IOS": "595824997092-1tgu6unnskaj3vsojgiog8l2bmf7lhmk.apps.googleusercontent.com",
       "LOGIN_ANDROID": "595824997092-0hjnftbq6qcu462233il7vbtvfs7kj5c.apps.googleusercontent.com"
-    }
+    },
+    "plugins": [
+      "expo-location"
+    ]
   }
 }

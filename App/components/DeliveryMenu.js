@@ -1,11 +1,22 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View, Animated, Dimensions, TouchableOpacity, Image, TextInput, PanResponder } from 'react-native';
 import { WebView } from 'react-native-webview';
+import * as Location from 'expo-location';
+
 import Back from './common/Back';
 import MapView from './map.html';
 
-export default function DeliveryMenu({ navigation }) {
+export default function DeliveryMenu({ route, navigation, user }) {
+
+  let check = {
+    status: 'ready',
+    start: { latitude: 0, longitude: 0 },
+    end: { latitude: 0, longitude: 0 },
+    box: 0
+  }
+  const [info, setInfo] = useState(check);
+  const { Iot } = route.params;
 
   useEffect(() => {
     slideUp();
@@ -15,6 +26,28 @@ export default function DeliveryMenu({ navigation }) {
     boxIconData: [require("../assets/icon/location/smallbox.png"), require("../assets/icon/location/midbox.png"), require("../assets/icon/location/bigbox.png")],
     boxTextData: ['소', '중', '대'],
     adrTextData: ['출발', '도착']
+  }
+
+  const boxPress = (boxStyle) => {
+    check.box = boxStyle;
+    setInfo(check);
+  }
+
+  const curLocationPress = async () => {
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      setErrorMsg('Permission to access location was denied');
+      return;
+    }
+
+    let location = await Location.getCurrentPositionAsync({});
+    check.start.latitude = location.coords.latitude;
+    check.start.longitude = location.coords.longitude;
+    setInfo(check);
+  }
+
+  const deliveryPress = () => {
+    Iot.send('delivery', JSON.parse(info));
   }
 
   const deviceHeight = Dimensions.get('window').height;
@@ -60,14 +93,17 @@ export default function DeliveryMenu({ navigation }) {
             <View style={styles.circle}></View>
           </View>
           <View style={styles.ltnAddress}>
-            {
-              viewData.adrTextData.map((text, i) =>
-                <View style={styles.addressCheck} key={i}>
-                  <Text style={styles.checkTitle}>{text}</Text>
-                  <TextInput style={styles.checkInput} />
-                </View>
-              )
-            }
+            <View style={styles.addressCheck}>
+              <View style={styles.checkSubView}>
+                <Text style={styles.checkTitle}>출발</Text>
+                <TouchableOpacity style={styles.gpsButton} onPress={curLocationPress}><Image style={styles.gpsImage} source={require('../assets/icon/detail/gps.png')} /></TouchableOpacity>
+              </View>
+              <TextInput style={styles.checkInput} />
+            </View>
+            <View style={styles.addressCheck}>
+              <Text style={styles.checkTitle}>도착</Text>
+              <TextInput style={styles.checkInput} />
+            </View>
           </View>
         </View>
         <View style={styles.viewBox}>
@@ -75,14 +111,14 @@ export default function DeliveryMenu({ navigation }) {
           <View style={styles.boxSelect}>
             {
               viewData.boxIconData.map((v, i) =>
-                <TouchableOpacity style={styles.boxButton} key={i}>
+                <TouchableOpacity style={styles.boxButton} key={i} onPress={(e) => boxPress(i)}>
                   <Image style={styles.boxIcon} source={viewData.boxIconData[i]} />
                   <Text style={styles.boxText}>{viewData.boxTextData[i]}</Text>
                 </TouchableOpacity>)
             }
           </View>
         </View>
-        <TouchableOpacity style={styles.reqButton}><Text style={styles.btnText}>배송 요청</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.reqButton} onPress={deliveryPress}><Text style={styles.btnText}>배송 요청</Text></TouchableOpacity>
       </Animated.View>
       <WebView
         style={styles.container}
@@ -152,7 +188,17 @@ const styles = StyleSheet.create({
     paddingRight: 18
   },
   addressCheck: {
-
+  },
+  checkSubView: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  gpsButton: {
+    alignSelf: 'center'
+  },
+  gpsImage: {
+    width: 20,
+    height: 20,
   },
   checkTitle: {
     fontSize: 18,
@@ -210,3 +256,5 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   }
 });
+
+

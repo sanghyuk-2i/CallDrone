@@ -5,17 +5,19 @@ import { WebView } from 'react-native-webview';
 import Back from './common/Back';
 import MapView from './map.html';
 
-export default function RealTimeMenu({ navigation }) {
+export default function RealTimeMenu({ route, navigation }) {
+
+    const check = {
+        start: [],
+        end: [],
+    }
+
+    const { Iot } = route.params;
+    const [status, setStatus] = useState(check);
 
     useEffect(() => {
         slideUp();
     })
-
-    const viewData = {
-        boxIconData: [require("../assets/icon/location/smallbox.png"), require("../assets/icon/location/midbox.png"), require("../assets/icon/location/bigbox.png")],
-        boxTextData: ['소', '중', '대'],
-        adrTextData: ['출발', '도착']
-    }
 
     const deviceHeight = Dimensions.get('window').height;
     const pan = useRef(new Animated.ValueXY({ x: 0, y: deviceHeight })).current;

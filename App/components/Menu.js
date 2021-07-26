@@ -1,13 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Image, TouchableOpacity } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import '../shim';
+import Iotcore from './Iotcore';
 
 export default function Menu({ navigation, user }) {
+
+    const Iot = new Iotcore()
+
+    setTimeout(() => {
+        Iot.connect()
+    }, 1000);
 
     const viewData = {
         stackName: ['delivery', 'receipt', 'realtime', 'setting', 'monitoring'],
         titleData: ['배송', '이력', '실시간 추적', '설정', '모니터링'],
         iconData: [require('../assets/icon/menu/box.png'), require('../assets/icon/menu/bill.png'), require('../assets/icon/menu/route.png'), require('../assets/icon/menu/settings.png'), require('../assets/icon/menu/pie-chart.png')]
+    }
+
+    const press = () => {
+        navigation.navigate('delivery', { check: 'img' })
     }
 
     return (
@@ -29,11 +41,21 @@ export default function Menu({ navigation, user }) {
                         viewData.titleData.map((v, i) => {
                             if (i === 2) {
                                 return (
-                                    <TouchableOpacity style={styles.menuButtonTwo} key={i} onPress={() => navigation.navigate(viewData.stackName[i])}>
+                                    <TouchableOpacity style={styles.menuButtonTwo} key={i} onPress={() => navigation.navigate(viewData.stackName[i], { Iot })}>
                                         <Text style={styles.menuText}>{v}</Text>
                                         <Image
                                             source={viewData.iconData[i]}
                                             style={styles.menuIconTwo} >
+                                        </Image>
+                                    </TouchableOpacity>
+                                )
+                            } else if (i === 0 || i === 4) {
+                                return (
+                                    <TouchableOpacity style={styles.menuButton} key={i} onPress={() => navigation.navigate(viewData.stackName[i], { Iot })}>
+                                        <Text style={styles.menuText}>{v}</Text>
+                                        <Image
+                                            source={viewData.iconData[i]}
+                                            style={styles.menuIcon} >
                                         </Image>
                                     </TouchableOpacity>
                                 )

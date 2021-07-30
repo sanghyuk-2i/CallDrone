@@ -39,12 +39,14 @@ export default class Iotcore {
     listen(topic, setState) {
         this.device.subscribe(topic);
         this.device.on('message', function (topic, payload) {
-            setState(JSON.parse(payload));
+            let check = JSON.parse(payload);
+            setState(check);
             // console.log('message', topic, payload.toString());
         });
     }
 
     send(topic, data) {
+        console.log('send!!', data);
         this.device.publish(topic, JSON.stringify(data));
     }
 

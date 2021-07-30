@@ -9,18 +9,31 @@ import MapView from './map.html';
 
 export default function DeliveryMenu({ route, navigation, user }) {
 
-  let check = {
-    status: 'ready',
-    start: { latitude: 0, longitude: 0 },
-    end: { latitude: 0, longitude: 0 },
-    box: 0
-  }
-  const [info, setInfo] = useState(check);
-  const { Iot } = route.params;
-
   useEffect(() => {
     slideUp();
   })
+
+  useEffect(() => {
+    console.log(info);
+    console.log(text);
+  }, [info, text])
+
+
+  const [info, setInfo] = useState({
+    status: 'ready',
+    start: { name: "", address: "", lat: 0, lon: 0 },
+    end: { name: "", address: "", lat: 0, lon: 0 },
+    box: 9
+  });
+
+  const { Iot, setMapset, setUsing } = route.params;
+
+  const deliveryPress = () => {
+    console.log("delivery request!");
+    setUsing(true);
+    setMapset({ ...info })
+    Iot.send('delivery/request', info);
+  }
 
   const viewData = {
     boxIconData: [require("../assets/icon/location/smallbox.png"), require("../assets/icon/location/midbox.png"), require("../assets/icon/location/bigbox.png")],
@@ -28,9 +41,36 @@ export default function DeliveryMenu({ route, navigation, user }) {
     adrTextData: ['출발', '도착']
   }
 
+  // Textinput Function
+
+  const [text, setText] = useState({
+    start: "",
+    end: ""
+  })
+
+  const webviewRef = useRef();
+
+  const inputAction = (text, state) => {
+    const run = `search('${text}', '${state}')`
+    webviewRef.current.injectJavaScript(run);
+  }
+
+  const outputAction = (json) => {
+    const data = JSON.parse(json);
+
+    if (data.state === '출발') {
+      setInfo((preInfo) => ({ ...preInfo, start: { ...preInfo.start, name: data.name, address: data.address, lat: Number(data.lat), lon: Number(data.lon) } }))
+      setText((preText) => ({ start: data.name, end: preText.end }),)
+    } else {
+      setInfo((preInfo) => ({ ...preInfo, end: { ...preInfo.end, name: data.name, address: data.address, lat: Number(data.lat), lon: Number(data.lon) } }))
+      setText((preText) => ({ start: preText.start, end: data.name }))
+    }
+  }
+
+  // Button Press Function
+
   const boxPress = (boxStyle) => {
-    check.box = boxStyle;
-    setInfo(check);
+    setInfo((prevInfo) => ({ ...prevInfo, box: boxStyle }));
   }
 
   const curLocationPress = async () => {
@@ -41,14 +81,20 @@ export default function DeliveryMenu({ route, navigation, user }) {
     }
 
     let location = await Location.getCurrentPositionAsync({});
-    check.start.latitude = location.coords.latitude;
-    check.start.longitude = location.coords.longitude;
-    setInfo(check);
+    console.log(location);
+    setInfo((prevInfo) => ({ ...prevInfo, start: { ...prevInfo.start, lat: location.coords.latitude, lon: location.coords.longitude } }));
+
+
+    const run = `
+    map.setCenter(new kakao.maps.LatLng(${info.start.lat.toFixed(6)}, ${info.start.lon.toFixed(6)}))
+    `
+    webviewRef.current.injectJavaScript(run);
+
+    setText((prevText) => ({ ...prevText, start: "현재 위치" }))
   }
 
-  const deliveryPress = () => {
-    Iot.send('delivery', JSON.parse(info));
-  }
+
+  // Animation
 
   const deviceHeight = Dimensions.get('window').height;
   const pan = useRef(new Animated.ValueXY({ x: 0, y: deviceHeight })).current;
@@ -98,11 +144,11 @@ export default function DeliveryMenu({ route, navigation, user }) {
                 <Text style={styles.checkTitle}>출발</Text>
                 <TouchableOpacity style={styles.gpsButton} onPress={curLocationPress}><Image style={styles.gpsImage} source={require('../assets/icon/detail/gps.png')} /></TouchableOpacity>
               </View>
-              <TextInput style={styles.checkInput} />
+              <TextInput style={styles.checkInput} onChangeText={(text) => setText((preText) => ({ start: text, end: preText.end }))} onEndEditing={event => inputAction(event.nativeEvent.text, "출발")} value={text.start} />
             </View>
             <View style={styles.addressCheck}>
               <Text style={styles.checkTitle}>도착</Text>
-              <TextInput style={styles.checkInput} />
+              <TextInput style={styles.checkInput} onChangeText={(text) => setText((preText) => ({ start: preText.start, end: text }))} onEndEditing={event => inputAction(event.nativeEvent.text, "도착")} value={text.end} />
             </View>
           </View>
         </View>
@@ -118,9 +164,12 @@ export default function DeliveryMenu({ route, navigation, user }) {
             }
           </View>
         </View>
+        {/* IoT Send = deliveryPress() */}
         <TouchableOpacity style={styles.reqButton} onPress={deliveryPress}><Text style={styles.btnText}>배송 요청</Text></TouchableOpacity>
       </Animated.View>
       <WebView
+        ref={webviewRef}
+        onMessage={(e) => outputAction(e.nativeEvent.data)}
         style={styles.container}
         originWhitelist={['*']}
         source={MapView} />
@@ -207,9 +256,10 @@ const styles = StyleSheet.create({
   },
   checkInput: {
     width: 260,
-    borderBottomWidth: 3,
+    borderBottomWidth: 2,
     borderBottomColor: '#C4C4C4',
-    marginVertical: 19.5
+    marginVertical: 19.5,
+    fontWeight: '600'
   },
   viewBox: {
     paddingBottom: 8

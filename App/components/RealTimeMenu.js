@@ -1,23 +1,86 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, Animated, Dimensions, TouchableOpacity, Image, TextInput, PanResponder } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Text, View, Animated, Dimensions, TouchableOpacity, Image, TextInput, PanResponder, Share } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Back from './common/Back';
 import MapView from './map.html';
 
 export default function RealTimeMenu({ route, navigation }) {
 
-    const check = {
-        start: [],
-        end: [],
-    }
-
-    const { Iot } = route.params;
-    const [status, setStatus] = useState(check);
-
     useEffect(() => {
         slideUp();
     })
+
+    useEffect(() => {
+        if (using) {
+            Iot.listen('delivery/response', setCurrent);
+            inputMapView(mapset.start, mapset.end);
+        } else {
+            clearMapView();
+        }
+        if (current.status === 'complete') {
+            setCurrent({
+                status: 'ready',
+                lat: 0,
+                lon: 0,
+                time: 0
+            })
+            setUsing(false);
+        } else if (current.status === 'flying') {
+            inputAction(current.lat, current.lon);
+        }
+    }, [current, using])
+
+    // 드론 현위치, 비행 속도 state값 받기, props는 출발지 최종지 + 그리고, 예상 도착 시간 공식 찾기 
+
+    const { Iot, using, setUsing, mapset } = route.params;
+
+    const [current, setCurrent] = useState({
+        status: 'ready',
+        lat: 0,
+        lon: 0,
+        time: 0
+    });
+    const [address, setAddress] = useState("");
+
+    const webviewRef = useRef();
+
+    const inputMapView = (start, end) => {
+        const run = `realTimeSetting('${JSON.stringify(start)}', '${JSON.stringify(end)}')`
+        webviewRef.current.injectJavaScript(run);
+    }
+
+    const clearMapView = () => {
+        const run = `clearingMap()`
+        webviewRef.current.injectJavaScript(run);
+    }
+
+    const inputAction = (lat, lon) => {
+        const run = `realTimeCurrent(${lat}, ${lon})`
+        webviewRef.current.injectJavaScript(run);
+    }
+
+    const outputAction = (json) => {
+        let data = JSON.parse(json);
+        setAddress(data);
+    }
+
+    // view content
+
+    const sharePress = async () => {
+        try {
+            await Share.share({
+                message: `현재 드론의 위치는 ${address} 이며, ${current}분 후 도착예정입니다.`
+            })
+        } catch (error) {
+            console.log(error);
+            alert(error);
+        }
+    }
+
+    const cancelPress = () => {
+        Iot.send('delivery/request', { status: 'cancel' });
+    }
 
     const deviceHeight = Dimensions.get('window').height;
     const pan = useRef(new Animated.ValueXY({ x: 0, y: deviceHeight })).current;
@@ -63,23 +126,25 @@ export default function RealTimeMenu({ route, navigation }) {
                     </View>
                     <View style={styles.ltnAddress}>
                         <View style={styles.addressContainer}>
-                            <Text style={styles.addressText}>경기도 화성시 동탄반석로 </Text>
+                            <Text style={styles.addressText}>{(mapset) ? mapset.start.name : "none"}</Text>
                         </View>
                         <View style={styles.addressContainer}>
-                            <Text style={styles.addressText}>경기도 용인시 기흥구</Text>
+                            <Text style={styles.addressText}>{(mapset) ? mapset.end.name : "none"}</Text>
                         </View>
                     </View>
                 </View>
                 <View style={styles.viewBox}>
-                    <Text style={styles.boxMinute}>50</Text>
+                    <Text style={styles.boxMinute}>{current.time}</Text>
                     <Text style={styles.boxText}>분 후 도착 예정</Text>
                 </View>
                 <View style={styles.viewButton}>
-                    <TouchableOpacity style={styles.reqButton}><Text style={styles.btnText}>공유하기</Text></TouchableOpacity>
-                    <TouchableOpacity style={styles.reqButton}><Text style={[styles.btnText, { color: '#E96D65' }]}>배송 취소</Text></TouchableOpacity>
+                    <TouchableOpacity style={styles.reqButton} onPress={sharePress}><Text style={styles.btnText}>공유하기</Text></TouchableOpacity>
+                    <TouchableOpacity style={styles.reqButton} onPress={cancelPress}><Text style={[styles.btnText, { color: '#E96D65' }]}>배송 취소</Text></TouchableOpacity>
                 </View>
             </Animated.View>
             <WebView
+                ref={webviewRef}
+                onMessage={(e) => outputAction(e.nativeEvent.data)}
                 style={styles.container}
                 originWhitelist={['*']}
                 source={MapView} />

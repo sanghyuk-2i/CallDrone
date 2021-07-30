@@ -7,8 +7,13 @@ import MonitoringDetailMenu from './MonitoringDetailMenu';
 
 export default function MonitoringMenu({ route, navigation }) {
 
+    useEffect(() => {
+        if (using) {
+            Iot.listen('drone', setDrone);
+        }
+    }, [using])
 
-    const check = {
+    const [drone, setDrone] = useState({
         id: "none",
         model: "none",
         status: "OFF",
@@ -19,13 +24,10 @@ export default function MonitoringMenu({ route, navigation }) {
         connection: false,
         speed: 0,
         rotation: 0,
-        location: { lattitude: 0, longtitude: 0 }
-    }
+        location: { lat: 0, lon: 0 }
+    });
 
-    const [drone, setDrone] = useState(check);
-
-    const { Iot } = route.params;
-    Iot.listen('drone', setDrone);
+    const { Iot, using } = route.params;
 
     const [back, setBack] = useState(true);
 
@@ -36,9 +38,6 @@ export default function MonitoringMenu({ route, navigation }) {
         slideRef.current.slideUp();
     }
 
-    const viewStatement = []
-    const colorChange = (status) => {
-    }
     return (
         <>
             <StatusBar style={'auto'} />

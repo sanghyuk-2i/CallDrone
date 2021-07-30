@@ -32,7 +32,7 @@ export default function Login({ setUser }) {
             <View style={styles.container}>
                 <View style={styles.texts}>
                     <Text style={styles.subTitle}>바로 배송 가능한 드론 택배 서비스</Text>
-                    <Text style={styles.title}>Interceptor</Text>
+                    <Text style={styles.title}>Call Drone</Text>
                     {
                         textData.map((text, index) =>
                             <Text style={styles.subText} key={index}>{text}</Text>

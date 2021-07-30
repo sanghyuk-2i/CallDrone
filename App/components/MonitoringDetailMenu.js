@@ -1,8 +1,6 @@
-import { StatusBar } from 'expo-status-bar';
 import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { StyleSheet, Text, View, Animated, Dimensions, TouchableOpacity, Image, TextInput, PanResponder } from 'react-native';
-import { WebView } from 'react-native-webview';
-import MapView from './map.html';
+import { WEATHER_API_KEY } from '@env';
 
 const MonitoringDetailMenu = forwardRef((props, ref) => {
     useImperativeHandle(ref, () => ({
@@ -15,6 +13,26 @@ const MonitoringDetailMenu = forwardRef((props, ref) => {
         }
     }));
 
+    // IoT Data
+
+    const { drone } = props;
+    const checkIot = {
+        dataOne: [drone.altitude + 'M', drone.battery + '%', drone.temperature + '℃'],
+        dataTwo: [[drone.gps, drone.connection], [drone.speed, drone.rotation]]
+    }
+
+    const changeStatus = (check) => {
+        return (check) ? 'ON' : 'OFF';
+    }
+
+    // Weather API (OpenWeather)
+    // Weather Icon = http://openweathermap.org/img/wn/{icon.id}@2x.png
+
+    // const weatherApi = fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${drone.lattitude}&lon=${drone.longtitude}&APPID=${WEATHER_API_KEY}&units=metric`).then((res) => res.json());
+    // const [weather_status, weather_temp, weather_wind, weather_icon] = weatherApi.weather.main, weatherApi.main.temp, weatherApi.wind.speed, weatherApi.weather.icon
+
+    // View Data
+
     const LIMIT_HEIGHT = 200;
 
     const viewData = {
@@ -23,16 +41,6 @@ const MonitoringDetailMenu = forwardRef((props, ref) => {
         textOne: ['고도', '배터리', '온도'],
         textTwo: [['GPS', '연결'], ['비행 속도', '회전']],
         textThree: ['℃', 'm/s']
-    }
-
-    const { drone } = props;
-    const checkData = {
-        dataOne: [drone.altitude + 'M', drone.battery + '%', drone.temperature + '℃'],
-        dataTwo: [[drone.gps, drone.connection], [drone.speed, drone.rotation]]
-    }
-
-    const changeStatus = (check) => {
-        return (check) ? 'ON' : 'OFF';
     }
 
     const deviceHeight = Dimensions.get('window').height;
@@ -66,7 +74,7 @@ const MonitoringDetailMenu = forwardRef((props, ref) => {
                     {
                         viewData.textOne.map((v, i) =>
                             <View style={[styles.valueContain, { width: '33.3%' }]} key={i}>
-                                <Text style={styles.valueText}>{checkData.dataOne[i]}</Text>
+                                <Text style={styles.valueText}>{checkIot.dataOne[i]}</Text>
                                 <View style={styles.explainContain}>
                                     <Image style={styles.explainIcon} source={viewData.iconOne[i]} />
                                     <Text style={styles.explainText}>{v}</Text>
@@ -82,7 +90,7 @@ const MonitoringDetailMenu = forwardRef((props, ref) => {
                                 {
                                     viewData.iconTwo.map((icon, j) =>
                                         <View style={[styles.valueContain, { width: '50%' }]} key={j}>
-                                            <Text style={styles.valueText}>{(i == 0) ? changeStatus(checkData.dataTwo[i][j]) : checkData.dataTwo[i][j]}</Text>
+                                            <Text style={styles.valueText}>{(i == 0) ? changeStatus(checkIot.dataTwo[i][j]) : checkIot.dataTwo[i][j]}</Text>
                                             <View style={styles.explainContain}>
                                                 <Image style={styles.explainIcon} source={viewData.iconTwo[i][j]} />
                                                 <Text style={styles.explainText}>{viewData.textTwo[i][j]}</Text>

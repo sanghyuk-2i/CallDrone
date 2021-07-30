@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=74adc06c5b4c23a527251cfaa36e4d72"></script>
+    <title>Map</title>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=74adc06c5b4c23a527251cfaa36e4d72&libraries&libraries=services,clusterer,drawing"></script>
     <style>
         * {
             -webkit-user-select: none;
@@ -12,44 +12,172 @@
         }
         body{
             margin: 0;
+            width: 100%;
+            height: 100%;
         }
         #map {
-            width: 100vmax;
-            height: 100vmax;
+            width: 100vw;
+            height: 100vh;
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <script>
-        var container = document.getElementById('map'); //지도를 담을 영역의 DOM 레퍼런스
-        var options = { //지도를 생성할 때 필요한 기본 옵션
-            center: new kakao.maps.LatLng(33.450701, 126.570667), //지도의 중심좌표.
-            level: 3 //지도의 레벨(확대, 축소 정도)
+        let infowindow = new kakao.maps.InfoWindow({zIndex:1});
+
+        let container = document.getElementById('map'); 
+        let options = { 
+            center: new kakao.maps.LatLng(33.450701, 126.570667), 
+            level: 3 
         };
 
-        var map = new kakao.maps.Map(container, options); //지도 생성 및 객체 리턴
-        // 지도를 클릭한 위치에 표출할 마커입니다
-        var marker = new kakao.maps.Marker({ 
-            // 지도 중심좌표에 마커를 생성합니다 
+        let map = new kakao.maps.Map(container, options);
+     
+        let destination = '출발';
+        const locationData = {
+            state: "",
+            name: "",
+            address: "",
+            lon: "",
+            lat: ""
+        }
+
+        let searchMarker = [];
+        let startMarker = new kakao.maps.Marker();
+        let endMarker = new kakao.maps.Marker();
+        let currentMarker = new kakao.maps.Marker();
+
+        let ps = new kakao.maps.services.Places();
+
+        let marker = new kakao.maps.Marker({ 
             position: map.getCenter() 
         }); 
-        // 지도에 마커를 표시합니다
         marker.setMap(map);
-
-        // 지도에 클릭 이벤트를 등록합니다
-        // 지도를 클릭하면 마지막 파라미터로 넘어온 함수를 호출합니다
-        kakao.maps.event.addListener(map, 'click', function(mouseEvent) {        
-            
-            // 클릭한 위도, 경도 정보를 가져옵니다 
-            var latlng = mouseEvent.latLng; 
-            
-            // 마커 위치를 클릭한 위치로 옮깁니다
+        
+        kakao.maps.event.addListener(map, 'click', function(mouseEvent) {                
+            let latlng = mouseEvent.latLng; 
+    
             marker.setPosition(latlng);
             
-            var message = '클릭한 위치의 위도는 ' + latlng.getLat() + ' 이고, ';
-            message += '경도는 ' + latlng.getLng() + ' 입니다';
+            // let message = '클릭한 위치의 위도는 ' + latlng.getLat() + ' 이고, ';
+            // message += '경도는 ' + latlng.getLng() + ' 입니다';
         });
+
+        let polyline = new kakao.maps.Polyline();
+
+        
+        function realTimeSetting(json){
+
+            let data = JSON.parse(json);
+
+            startMarker.setPosition(new kakao.maps.LatLng(data.start.lon, data.start.lat))
+            endMarker.setPosition(new kakao.maps.LatLng(data.end.lon, data.end.lat))
+;
+            startMarker.setMap(map);
+            endMarker.setMap(map);
+
+            let bounds = new kakao.maps.LatLngBounds();
+            bounds.extend(startMarker.getPosition());
+            bounds.extend(endMarker.getPosition());
+
+            let linePath = [startMarker.getPosition(), endMarker.getPosition()];
+
+            polyline.setOptions({
+                path: linePath,
+                strokeWeight: 5,
+                strokeColor: '#47FF5A',
+                strokeOpacity: 0.7, 
+                strokeStyle: 'solid' 
+            })
+            polyline.setMap(map);
+
+            map.setBounds(bounds);
+        }
+
+        function realTimeCurrent(lat, lon){
+            currentMarker.setMap(map);
+            currentMarker.setPosition(new kakao.maps.LatLng(lon, lat));
+            map.setCenter(currentMarker.getPosition());
+
+            let geocoder = new kakao.maps.services.Geocoder();
+
+            let callback = function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    // window.ReactNativeWebView.postMessage(JSON.stringify(result[0].address.address_name));
+                }
+            };
+
+            geocoder.coord2Address(currentMarker.getPosition().getLng(), currentMarker.getPosition().getLat(), callback);
+        }
+
+        function clearingMap() {
+            startMarker.setMap(null);
+            endMarker.setMap(null);
+            currentMarker.setMap(null);
+            polyline.setMap(null);
+        }
+
+        function search(keyword, dest){
+            destination = dest;
+            ps.keywordSearch(keyword, placesSearchCB);
+        }
+        
+        function placesSearchCB (data, status, pagination) {
+            if (status === kakao.maps.services.Status.OK) {
+
+                if(searchMarker.length){
+                    searchMarker.map((v, i) => {
+                        v.setMap(null);
+                    })
+                    searchMarker = [];
+                }
+                
+                let bounds = new kakao.maps.LatLngBounds();
+                
+                for (let i=0; i<data.length; i++) {
+                    displayMarker(data[i], destination);    
+                    bounds.extend(new kakao.maps.LatLng(data[i].y, data[i].x));
+                }       
+                
+                map.setBounds(bounds);
+            } 
+        }
+        
+        function displayMarker(place, destination) {
+            
+            let marker = new kakao.maps.Marker({
+                map: map,
+                position: new kakao.maps.LatLng(place.y, place.x) 
+            });
+            
+            kakao.maps.event.addListener(marker, 'click', function() {
+                infowindow.setContent(windowContent(place, destination));
+                infowindow.open(map, marker);
+            });
+
+            searchMarker = [...searchMarker, marker];
+        }
+
+        function windowContent(place, btn){
+            locationData.state = destination;
+            locationData.name =place.place_name;
+            locationData.address= place.road_address_name;
+            locationData.lon= place.x;
+            locationData.lat= place.y;
+
+            const result = `
+            <div style="display:flex;flex-direction:column;justify-content:center;padding:5px;">
+            <h4 style="width:100%;font-size:12px;">${locationData.name}</h4>
+            <button style="" onclick="onPress()">${btn}</button>
+            </div>
+            `;
+            return result;
+        }
+
+        function onPress(){
+            window.ReactNativeWebView.postMessage(JSON.stringify(locationData));
+        }
     </script>
 </body>
 </html>

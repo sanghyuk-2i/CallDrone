@@ -6,11 +6,19 @@ import Iotcore from './Iotcore';
 
 export default function Menu({ navigation, user }) {
 
-    const Iot = new Iotcore()
+    const Iot = null;
+    // const Iot = new Iotcore();
 
-    setTimeout(() => {
-        Iot.connect()
-    }, 1000);
+    // useEffect(() => {
+    //     if(!using){
+    //         setTimeout(() => {
+    //             Iot.connect()
+    //         }, 1000);
+    //     }
+    // }, [using])
+
+    const [mapset, setMapset] = useState();
+    const [using, setUsing] = useState(false);
 
     const viewData = {
         stackName: ['delivery', 'receipt', 'realtime', 'setting', 'monitoring'],
@@ -27,7 +35,7 @@ export default function Menu({ navigation, user }) {
             <StatusBar style={'auto'} />
             <View style={styles.container}>
                 <View style={styles.headerWrapper}>
-                    <Text style={styles.headerText}>Interceptor</Text>
+                    <Text style={styles.headerText}>Call Drone</Text>
                     <View style={styles.profileBin}>
                         <Image
                             source={{ uri: user.photoUrl }}
@@ -41,7 +49,7 @@ export default function Menu({ navigation, user }) {
                         viewData.titleData.map((v, i) => {
                             if (i === 2) {
                                 return (
-                                    <TouchableOpacity style={styles.menuButtonTwo} key={i} onPress={() => navigation.navigate(viewData.stackName[i], { Iot })}>
+                                    <TouchableOpacity style={styles.menuButtonTwo} key={i} onPress={() => navigation.navigate(viewData.stackName[i], { Iot, using, setUsing, mapset })}>
                                         <Text style={styles.menuText}>{v}</Text>
                                         <Image
                                             source={viewData.iconData[i]}
@@ -51,7 +59,7 @@ export default function Menu({ navigation, user }) {
                                 )
                             } else if (i === 0 || i === 4) {
                                 return (
-                                    <TouchableOpacity style={styles.menuButton} key={i} onPress={() => navigation.navigate(viewData.stackName[i], { Iot })}>
+                                    <TouchableOpacity style={styles.menuButton} key={i} onPress={() => navigation.navigate(viewData.stackName[i], { Iot, using, setUsing, setMapset })}>
                                         <Text style={styles.menuText}>{v}</Text>
                                         <Image
                                             source={viewData.iconData[i]}

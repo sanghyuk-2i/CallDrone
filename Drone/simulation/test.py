@@ -29,7 +29,7 @@ import math
 sys.path.append('../../Cloud')
 import cloud_iot
 
-cloud_connect = cloud_iot.Connection()
+# cloud_connect = cloud_iot.Connection()
 
 ##### Connect to simulation 
 
@@ -155,8 +155,8 @@ time.sleep(10)
 
 
 if(drone.armCheck()):
-    drone.takeOffAlitude(3, 1.5)
-    cloud_connect.sendMessage(current_id, drone.droneStatusLog())
+    drone.takeOffAlitude(3, 1.0)
+    # cloud_connect.sendMessage(current_id, drone.droneStatusLog())
 else:
     print('드론 상태를 점검 후 다시 실행해 주세요!')
 
@@ -176,25 +176,25 @@ else:
 
 ##### 드론 목적지까지 이동
 
-point1 = LocationGlobalRelative(37.27680531, 127.12929642, 1.5)
-drone.vehicle.simple_goto(point1)
+# point1 = LocationGlobalRelative(37.27680531, 127.12929642, 0.1)
+# drone.vehicle.simple_goto(point1)
 
-current_location = drone.vehicle.location.global_relative_frame
+# current_location = drone.vehicle.location.global_relative_frame
 
-print(current_location)
-print(point1)
+# print(current_location)
+# print(point1)
 
-while True:
-    left_distance = drone.getDistanceMetres(current_location, point1)
-    if(left_distance > 0.6):
-        print(f'남은 거리 : {left_distance}m')
-        cloud_connect.sendMessage(current_id, drone.droneStatusLog(current_location))
-    else:
-        time.sleep(3)
-        drone.landingAndShutdown()
-        break
-    current_location = drone.vehicle.location.global_relative_frame
-    time.sleep(1)
+# while True:
+#     left_distance = drone.getDistanceMetres(current_location, point1)
+#     if(left_distance > 0.6):
+#         print(f'남은 거리 : {left_distance}m')
+#         # cloud_connect.sendMessage(current_id, drone.droneStatusLog(current_location))
+#     else:
+#         time.sleep(3)
+#         drone.landingAndShutdown()
+#         break
+#     current_location = drone.vehicle.location.global_relative_frame
+#     time.sleep(1)
 
 
 

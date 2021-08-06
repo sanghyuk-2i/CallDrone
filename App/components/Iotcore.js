@@ -1,4 +1,3 @@
-import React from 'react';
 import AWS from 'aws-sdk';
 import awsIot from 'aws-iot-device-sdk';
 import { REGION, INDENTITYPOOL_ID, IOT_HOST } from '@env';
@@ -6,6 +5,9 @@ import { REGION, INDENTITYPOOL_ID, IOT_HOST } from '@env';
 export default class Iotcore {
     constructor() {
         this.auth()
+        // setTimeout(() => {
+        //     this.connect()
+        // }, 600)
     }
 
     auth() {
@@ -36,13 +38,27 @@ export default class Iotcore {
         });
     }
 
-    listen(topic, setState) {
-        this.device.subscribe(topic);
-        this.device.on('message', function (topic, payload) {
-            let check = JSON.parse(payload);
-            setState(check);
-            // console.log('message', topic, payload.toString());
+    offline() {
+        this.device.on('offline', function () {
+            console.log('offline');
         });
+    }
+
+    disconnect() {
+        console.log('disconnect');
+        this.device.end()
+    }
+
+    listen(topic, callback) {
+        console.log('listen on!');
+        this.device.subscribe(topic)
+        this.device.on('message', function (topic, payload) {
+            console.log('message came!');
+            let check = JSON.parse(payload);
+            // setState((prevState) => ({ ...prevState, ...check }))
+            callback(check);
+        });
+
     }
 
     send(topic, data) {
@@ -50,7 +66,34 @@ export default class Iotcore {
         this.device.publish(topic, JSON.stringify(data));
     }
 
+    subscribe(topic) {
+        this.device.subscribe(topic);
+    }
+
     check() {
         console.log('Test!')
     }
 }
+
+// export default function onRun() {
+//     const [current, setCurrent] = useState()
+//     const Iot = new Iotcore();
+
+//     useEffect(() => {
+//         setTimeout(() => {
+//             Iot.listen('delivery/response', function (payload) {
+//                 setCurrent({ ...payload })
+//             })
+//         }, 800)
+//         return () => {
+//             Iot.disconnect();
+//         }
+//     })
+
+//     console.log("i'm listening");
+
+//     return (
+//         <>
+//         </>
+//     )
+// }

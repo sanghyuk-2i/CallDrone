@@ -1,6 +1,5 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { StyleSheet, Text, View, Animated, Dimensions, TouchableOpacity, Image, TextInput, PanResponder } from 'react-native';
-import { WEATHER_API_KEY } from '@env';
 
 const MonitoringDetailMenu = forwardRef((props, ref) => {
     useImperativeHandle(ref, () => ({
@@ -15,7 +14,7 @@ const MonitoringDetailMenu = forwardRef((props, ref) => {
 
     // IoT Data
 
-    const { drone } = props;
+    const { drone, weather } = props;
     const checkIot = {
         dataOne: [drone.altitude + 'M', drone.battery + '%', drone.temperature + '℃'],
         dataTwo: [[drone.gps, drone.connection], [drone.speed, drone.rotation]]
@@ -24,12 +23,6 @@ const MonitoringDetailMenu = forwardRef((props, ref) => {
     const changeStatus = (check) => {
         return (check) ? 'ON' : 'OFF';
     }
-
-    // Weather API (OpenWeather)
-    // Weather Icon = http://openweathermap.org/img/wn/{icon.id}@2x.png
-
-    // const weatherApi = fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${drone.lattitude}&lon=${drone.longtitude}&APPID=${WEATHER_API_KEY}&units=metric`).then((res) => res.json());
-    // const [weather_status, weather_temp, weather_wind, weather_icon] = weatherApi.weather.main, weatherApi.main.temp, weatherApi.wind.speed, weatherApi.weather.icon
 
     // View Data
 
@@ -106,11 +99,11 @@ const MonitoringDetailMenu = forwardRef((props, ref) => {
             <View style={styles.viewWeather}>
                 <Text style={styles.weatherTitle}>현재 지역 날씨</Text>
                 <View style={styles.weatherContainer}>
-                    <Image style={styles.weatherIcon} source={require('../assets/clear-cloudy.png')} resizeMode={'contain'} />
+                    <Image style={styles.weatherIcon} source={{ uri: `http://openweathermap.org/img/wn/${weather.icon}@2x.png` }} resizeMode={'contain'} />
                     {
                         viewData.textThree.map((v, i) =>
                             <View style={styles.weatherBox} key={i}>
-                                <Text style={styles.weatherValue}>23</Text>
+                                <Text style={styles.weatherValue}>{(i === 0) ? weather.temp : weather.wind}</Text>
                                 <Text style={styles.weatherText}>{v}</Text>
                             </View>
                         )

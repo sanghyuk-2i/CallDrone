@@ -1,40 +1,21 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View, Animated, Dimensions, TouchableOpacity, Image, TextInput, PanResponder, Share } from 'react-native';
+import { StyleSheet, Text, View, Animated, Dimensions, TouchableOpacity, Image, TextInput, PanResponder, Share, LogBox } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Back from './common/Back';
 import MapView from './map.html';
 
+// import '../shim';
+// import Iotcore from './Iotcore';
+
 export default function RealTimeMenu({ route, navigation }) {
+    LogBox.ignoreLogs([
+        'Non-serializable values were found in the navigation state',
+    ]);
 
-    useEffect(() => {
-        slideUp();
-    })
+    const { Iot, setIot, using, setUsing, mapset } = route.params;
 
-    useEffect(() => {
-        if (using) {
-            Iot.listen('delivery/response', setCurrent);
-            inputMapView(mapset.start, mapset.end);
-        } else {
-            clearMapView();
-        }
-        if (current.status === 'complete') {
-            setCurrent({
-                status: 'ready',
-                lat: 0,
-                lon: 0,
-                time: 0
-            })
-            setUsing(false);
-        } else if (current.status === 'flying') {
-            inputAction(current.lat, current.lon);
-        }
-    }, [current, using])
-
-    // 드론 현위치, 비행 속도 state값 받기, props는 출발지 최종지 + 그리고, 예상 도착 시간 공식 찾기 
-
-    const { Iot, using, setUsing, mapset } = route.params;
-
+    const [initmap, setInitmap] = useState(true);
     const [current, setCurrent] = useState({
         status: 'ready',
         lat: 0,
@@ -43,25 +24,80 @@ export default function RealTimeMenu({ route, navigation }) {
     });
     const [address, setAddress] = useState("");
 
+    // const Iot = new Iotcore();
+
+    // useEffect(() => {
+    //     slideUp();
+    // })
+
+
+    useEffect(() => {
+        slideUp();
+        Iot.connect();
+        setTimeout(() => {
+            Iot.listen('delivery/response', function (payload) {
+                checkCurrent(payload);
+            })
+        }, 600)
+
+        return () => {
+            Iot.disconnect();
+        }
+    })
+
+    useEffect(() => {
+        if (using) {
+            if (initmap) {
+                clearMapView();
+                setTimeout(() => {
+                    inputMapView(mapset);
+                    setInitmap(false);
+                }, 2000)
+            }
+        } else {
+            clearMapView();
+        }
+        console.log(address);
+    }, [using, address])
+
+    const checkCurrent = (payload) => {
+        // Complete시 오류 발생!!! 수정 필요!!
+        if (payload.status == 'complete') {
+            console.log("flying function end");
+            setCurrent((prevCurrent) => ({ ...prevCurrent, status: 'ready', lat: 0, lon: 0, time: 0 }))
+            setUsing(false);
+        } else if (payload.status == 'flying') {
+            console.log('flying function start!');
+            inputAction(payload.lat, payload.lon);
+        }
+        setCurrent({ ...payload });
+    }
+
+    // 드론 현위치, 비행 속도 state값 받기, props는 출발지 최종지 + 그리고, 예상 도착 시간 공식 찾기 
+
+
     const webviewRef = useRef();
 
-    const inputMapView = (start, end) => {
-        const run = `realTimeSetting('${JSON.stringify(start)}', '${JSON.stringify(end)}')`
+    const inputMapView = (mapset) => {
+        let json = JSON.stringify(mapset);
+        const run = `realTimeSetting('${json}')`
         webviewRef.current.injectJavaScript(run);
     }
 
     const clearMapView = () => {
+        console.log("claeringMap");
         const run = `clearingMap()`
         webviewRef.current.injectJavaScript(run);
     }
 
     const inputAction = (lat, lon) => {
+        console.log("realTimeCurrent");
         const run = `realTimeCurrent(${lat}, ${lon})`
         webviewRef.current.injectJavaScript(run);
     }
 
-    const outputAction = (json) => {
-        let data = JSON.parse(json);
+    const outputAction = (data) => {
+        console.log("outputAction");
         setAddress(data);
     }
 
@@ -70,7 +106,7 @@ export default function RealTimeMenu({ route, navigation }) {
     const sharePress = async () => {
         try {
             await Share.share({
-                message: `현재 드론의 위치는 ${address} 이며, ${current}분 후 도착예정입니다.`
+                message: `현재 드론의 위치는 ${address} 이며, ${current.time}분 후 도착예정입니다.`
             })
         } catch (error) {
             console.log(error);
@@ -134,7 +170,7 @@ export default function RealTimeMenu({ route, navigation }) {
                     </View>
                 </View>
                 <View style={styles.viewBox}>
-                    <Text style={styles.boxMinute}>{current.time}</Text>
+                    <Text style={styles.boxMinute}>{(current) ? current.time : "0"}</Text>
                     <Text style={styles.boxText}>분 후 도착 예정</Text>
                 </View>
                 <View style={styles.viewButton}>
@@ -258,3 +294,6 @@ const styles = StyleSheet.create({
         fontWeight: '700'
     }
 });
+
+
+

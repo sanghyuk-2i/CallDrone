@@ -2,16 +2,12 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react'
 import { View, Text, Image, StyleSheet, Button, TouchableOpacity, Dimensions, Animated, PanResponder } from 'react-native'
 import Back from './common/Back';
+import { WEATHER_API_KEY } from '@env';
 
 import MonitoringDetailMenu from './MonitoringDetailMenu';
 
 export default function MonitoringMenu({ route, navigation }) {
 
-    useEffect(() => {
-        if (using) {
-            Iot.listen('drone', setDrone);
-        }
-    }, [using])
 
     const [drone, setDrone] = useState({
         id: "none",
@@ -27,9 +23,43 @@ export default function MonitoringMenu({ route, navigation }) {
         location: { lat: 0, lon: 0 }
     });
 
+    // Weather API (OpenWeather)
+    // Weather Icon = http://openweathermap.org/img/wn/{icon.id}@2x.png
+
+    const [weather, setWeather] = useState({
+        status: '',
+        temp: 0,
+        wind: 0,
+        icon: ''
+    })
+
     const { Iot, using } = route.params;
 
     const [back, setBack] = useState(true);
+
+    useEffect(() => {
+        if (using) {
+            Iot.connect();
+            setTimeout(() => {
+                Iot.listen('drone', function (payload) {
+                    checkDrone(payload);
+                })
+            }, 600)
+        }
+        return () => {
+            Iot.disconnect();
+        }
+    }, [using])
+
+    const checkDrone = (payload) => {
+        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${payload.location.lat}&lon=${payload.location.lon}&APPID=${WEATHER_API_KEY}&units=metric`)
+            .then((res) => { return res.json() })
+            .then((json) => {
+                console.log(json);
+                setWeather((prevWeather) => ({ ...prevWeather, status: json.weather[0].main, temp: json.main.temp, wind: json.wind.speed, icon: json.weather[0].icon }))
+            });
+        setDrone({ ...payload });
+    }
 
     const slideRef = useRef();
 
@@ -71,7 +101,7 @@ export default function MonitoringMenu({ route, navigation }) {
                     <TouchableOpacity onPress={() => showSlide()}><Text style={styles.DetailClickText}>세부사항</Text></TouchableOpacity>
                 </View>
             </View>
-            <MonitoringDetailMenu back={setBack} ref={slideRef} drone={drone} />
+            <MonitoringDetailMenu back={setBack} ref={slideRef} drone={drone} weather={weather} />
         </>
     )
 }

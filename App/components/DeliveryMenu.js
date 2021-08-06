@@ -1,17 +1,21 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View, Animated, Dimensions, TouchableOpacity, Image, TextInput, PanResponder } from 'react-native';
+import { StyleSheet, Text, View, Animated, Dimensions, TouchableOpacity, Image, TextInput, PanResponder, LogBox } from 'react-native';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
-
 import Back from './common/Back';
 import MapView from './map.html';
 
 export default function DeliveryMenu({ route, navigation, user }) {
 
+  LogBox.ignoreLogs([
+    'Non-serializable values were found in the navigation state',
+  ]);
+
   useEffect(() => {
     slideUp();
-  })
+    Iot.connect()
+  }, [])
 
   useEffect(() => {
     console.log(info);
@@ -25,6 +29,8 @@ export default function DeliveryMenu({ route, navigation, user }) {
     end: { name: "", address: "", lat: 0, lon: 0 },
     box: 9
   });
+
+  // const Iot = new Iotcore()
 
   const { Iot, setMapset, setUsing } = route.params;
 

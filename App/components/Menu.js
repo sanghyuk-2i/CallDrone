@@ -1,24 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, Image, TouchableOpacity } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+
 import '../shim';
 import Iotcore from './Iotcore';
 
 export default function Menu({ navigation, user }) {
 
-    const Iot = null;
-    // const Iot = new Iotcore();
-
-    // useEffect(() => {
-    //     if(!using){
-    //         setTimeout(() => {
-    //             Iot.connect()
-    //         }, 1000);
-    //     }
-    // }, [using])
-
     const [mapset, setMapset] = useState();
     const [using, setUsing] = useState(false);
+    const [Iot, setIot] = useState(new Iotcore());
+    // const [Iot, setIot] = useState(null)
+
+    useEffect(() => {
+        return () => {
+            console.log(`menu iot!`);
+            setIot(Iot);
+        }
+    })
 
     const viewData = {
         stackName: ['delivery', 'receipt', 'realtime', 'setting', 'monitoring'],
@@ -49,7 +48,7 @@ export default function Menu({ navigation, user }) {
                         viewData.titleData.map((v, i) => {
                             if (i === 2) {
                                 return (
-                                    <TouchableOpacity style={styles.menuButtonTwo} key={i} onPress={() => navigation.navigate(viewData.stackName[i], { Iot, using, setUsing, mapset })}>
+                                    <TouchableOpacity style={styles.menuButtonTwo} key={i} onPress={() => navigation.navigate(viewData.stackName[i], { Iot, setIot, using, setUsing, mapset })}>
                                         <Text style={styles.menuText}>{v}</Text>
                                         <Image
                                             source={viewData.iconData[i]}

@@ -26,7 +26,7 @@ export default StackNavigator = () => {
                         <Stack.Screen name='menu' children={props => <Menu {...props} user={user} />} />
                         <Stack.Screen name='delivery' children={props => <DeliveryMenu {...props} user={user} />} />
                         <Stack.Screen name='receipt' children={props => <DeliveryRecordMenu {...props} user={user} />} />
-                        <Stack.Screen name='realtime' children={props => <RealTimeMenu {...props} user={user} />} />
+                        <Stack.Screen name='realtime' children={props => <RealTimeMenu {...props} />} />
                         <Stack.Screen name='setting' children={props => <SettingMenu {...props} user={user} />} />
                         <Stack.Screen name='monitoring' children={props => <MonitoringMenu {...props} user={user} />} />
                     </Stack.Navigator>

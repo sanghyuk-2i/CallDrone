@@ -48,6 +48,11 @@
         let endMarker = new kakao.maps.Marker();
         let currentMarker = new kakao.maps.Marker();
 
+        // let markerImage = new kakao.maps.MarkerImage(
+        //     'https://i1.daumcdn.net/dmaps/apis/nlocalblit04.png',
+        //     new kakao.maps.Size(31, 35), new kakao.maps.Point(13, 34));
+        // currentMarker.setImage(markerImage);
+
         let ps = new kakao.maps.services.Places();
 
         let marker = new kakao.maps.Marker({ 
@@ -68,11 +73,12 @@
 
         
         function realTimeSetting(json){
-
+            console.log('html!')
             let data = JSON.parse(json);
+            console.log(data);
 
-            startMarker.setPosition(new kakao.maps.LatLng(data.start.lon, data.start.lat))
-            endMarker.setPosition(new kakao.maps.LatLng(data.end.lon, data.end.lat))
+            startMarker.setPosition(new kakao.maps.LatLng(data.start.lat, data.start.lon))
+            endMarker.setPosition(new kakao.maps.LatLng(data.end.lat, data.end.lon))
 ;
             startMarker.setMap(map);
             endMarker.setMap(map);
@@ -97,18 +103,22 @@
 
         function realTimeCurrent(lat, lon){
             currentMarker.setMap(map);
-            currentMarker.setPosition(new kakao.maps.LatLng(lon, lat));
+            currentMarker.setPosition(new kakao.maps.LatLng(lat, lon));
             map.setCenter(currentMarker.getPosition());
 
             let geocoder = new kakao.maps.services.Geocoder();
 
             let callback = function(result, status) {
                 if (status === kakao.maps.services.Status.OK) {
-                    // window.ReactNativeWebView.postMessage(JSON.stringify(result[0].address.address_name));
+                    window.ReactNativeWebView.postMessage(result[0].address.address_name);
                 }
+                return true;
             };
 
-            geocoder.coord2Address(currentMarker.getPosition().getLng(), currentMarker.getPosition().getLat(), callback);
+            let current_lat = currentMarker.getPosition().getLat();
+            let current_lng = currentMarker.getPosition().getLng();
+
+            geocoder.coord2Address(current_lng, current_lat, callback);
         }
 
         function clearingMap() {

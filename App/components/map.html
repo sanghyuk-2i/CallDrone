@@ -64,12 +64,45 @@
             let latlng = mouseEvent.latLng; 
     
             marker.setPosition(latlng);
+
+            let geocoder = new kakao.maps.services.Geocoder();
+
+            let callback = function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    infowindow.setContent(windowTwoContent(result[0].address, current_lat, current_lng));
+                    infowindow.open(map, marker);
+                    // window.ReactNativeWebView.postMessage(result[0].address.address_name);
+                }
+                return true;
+            };
+
+            let current_lat = marker.getPosition().getLat();
+            let current_lng = marker.getPosition().getLng();
+
+            geocoder.coord2Address(current_lng, current_lat, callback);
+
             
             // let message = '클릭한 위치의 위도는 ' + latlng.getLat() + ' 이고, ';
             // message += '경도는 ' + latlng.getLng() + ' 입니다';
         });
 
+
         let polyline = new kakao.maps.Polyline();
+
+        function windowTwoContent(place, lat, lng) {
+            locationData.name = place.address_name;
+            locationData.address = place.address_name;
+            locationData.lon= lng;
+            locationData.lat= lat;
+
+            const result = `
+            <div style="display:flex;flex-direction:column;justify-content:center;padding:5px;">
+                <button style="width:100%" onclick="onPressTwo(1)">출발</button>
+                <button style="" onclick="onPressTwo(0)">도착</button>
+            </div>
+            `;
+            return result;
+        }
 
         
         function realTimeSetting(json){
@@ -186,6 +219,12 @@
         }
 
         function onPress(){
+            window.ReactNativeWebView.postMessage(JSON.stringify(locationData));
+        }
+
+        function onPressTwo(state){
+            console.log(state);
+            (state) ? locationData.state = '출발' : locationData.state = '도착' 
             window.ReactNativeWebView.postMessage(JSON.stringify(locationData));
         }
     </script>

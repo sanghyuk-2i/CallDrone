@@ -1,9 +1,28 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, Image, StyleSheet, Button, ScrollView, TouchableOpacity } from 'react-native'
 import { StatusBar } from 'expo-status-bar';
 import Back from './common/Back';
+import API_GATEWAY from '@env';
 
 export default function DeliveryRecordMenu({ navigation }) {
+
+    const [data, setData] = useState([]);
+
+    useEffect(() => {
+        console.log(`length: ${data.length}`)
+        if (!data.length) {
+            fetch(API_GATEWAY,
+                { method: 'GET', mode: 'no-cors', headers: { 'Content-Type': 'application/json' } })
+                .then((res) => {
+                    return res.json();
+                })
+                .then((json_data) => {
+                    setData([...json_data.Items])
+                })
+        }
+        console.log(data);
+    });
+
     return (
         <>
             <StatusBar style='auto' />
@@ -16,7 +35,7 @@ export default function DeliveryRecordMenu({ navigation }) {
                 </View>
                 <ScrollView style={styles.ScrollHeader}>
                     {
-                        [...Array(3)].map((v, i) =>
+                        data.map((v, i) =>
                             <View style={styles.RecordWrapper} key={i}>
                                 <View style={styles.RecordMap}>
                                     <Image
@@ -27,8 +46,8 @@ export default function DeliveryRecordMenu({ navigation }) {
                                 <View style={styles.RecordTextWrapper}>
                                     <View style={styles.RecordDateIdMenu}>
                                         <View style={styles.dateContainer}>
-                                            <Text style={styles.Date}>2021/06/18</Text>
-                                            <Text style={styles.DroneId}>ID123456</Text>
+                                            <Text style={styles.Date}>{Number(data[i]["timestamp"]["N"])}</Text>
+                                            <Text style={styles.DroneId}>{JSON.parse(data[i]['drone']['S'])['drone_id']}</Text>
                                         </View>
                                         <View style={styles.dateContainerTwo}>
                                             <TouchableOpacity style={styles.MenuContainer}>
@@ -51,27 +70,26 @@ export default function DeliveryRecordMenu({ navigation }) {
                                                 }
                                             </View>
                                             <View style={styles.addressText}>
-                                                {
-                                                    [...Array(2)].map((v, i) =>
-                                                        <View style={styles.textContainer} key={i}>
-                                                            <Text style={styles.textText}>경기도</Text>
-                                                        </View>
-                                                    )
-                                                }
+                                                <View style={styles.textContainer}>
+                                                    <Text style={styles.textText}>{JSON.parse(data[i]['drone']['S'])['start']['address']}</Text>
+                                                </View>
+                                                <View style={styles.textContainer}>
+                                                    <Text style={styles.textText}>{JSON.parse(data[i]['drone']['S'])['end']['address']}</Text>
+                                                </View>
                                             </View>
                                         </View>
                                         <View style={styles.boxLine}>
                                             <View style={styles.line}></View>
                                         </View>
                                         <View style={styles.boxDetail}>
-                                            {
-                                                [...Array(2)].map((v, i) =>
-                                                    <View style={styles.detailContainer} key={i}>
-                                                        <Text style={styles.detailTitle}>주행거리</Text>
-                                                        <Text style={styles.detailText}>2.54km</Text>
-                                                    </View>
-                                                )
-                                            }
+                                            <View style={styles.detailContainer}>
+                                                <Text style={styles.detailTitle}>주행거리</Text>
+                                                <Text style={styles.detailText}>{`${JSON.parse(data[i]['drone']['S']).distance}분`}</Text>
+                                            </View>
+                                            <View style={styles.detailContainer}>
+                                                <Text style={styles.detailTitle}>비행시간</Text>
+                                                <Text style={styles.detailText}>{`${JSON.parse(data[i]['drone']['S']).time}분`}</Text>
+                                            </View>
                                         </View>
                                     </View>
                                 </View>

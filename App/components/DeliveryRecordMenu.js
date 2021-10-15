@@ -2,22 +2,27 @@ import React, { useEffect, useState } from 'react'
 import { View, Text, Image, StyleSheet, Button, ScrollView, TouchableOpacity } from 'react-native'
 import { StatusBar } from 'expo-status-bar';
 import Back from './common/Back';
-import API_GATEWAY from '@env';
+import { API_GATEWAY } from '@env';
 
-export default function DeliveryRecordMenu({ navigation }) {
+export default function DeliveryRecordMenu({ navigation, user }) {
 
     const [data, setData] = useState([]);
 
     useEffect(() => {
         console.log(`length: ${data.length}`)
         if (!data.length) {
-            fetch(API_GATEWAY,
+            fetch(API_GATEWAY + user.id,
                 { method: 'GET', mode: 'no-cors', headers: { 'Content-Type': 'application/json' } })
                 .then((res) => {
                     return res.json();
                 })
                 .then((json_data) => {
                     setData([...json_data.Items])
+                    // if (data.length === 0) {
+                    //     setData([{
+                    //         "timestamp": { "N": 0 }
+                    //     }]);
+                    // }
                 })
         }
         console.log(data);
@@ -35,65 +40,72 @@ export default function DeliveryRecordMenu({ navigation }) {
                 </View>
                 <ScrollView style={styles.ScrollHeader}>
                     {
-                        data.map((v, i) =>
-                            <View style={styles.RecordWrapper} key={i}>
-                                <View style={styles.RecordMap}>
-                                    <Image
-                                        source={require('../assets/maptest.png')}
-                                        style={styles.RecordMapSize}>
-                                    </Image>
-                                </View>
-                                <View style={styles.RecordTextWrapper}>
-                                    <View style={styles.RecordDateIdMenu}>
-                                        <View style={styles.dateContainer}>
-                                            <Text style={styles.Date}>{Number(data[i]["timestamp"]["N"])}</Text>
-                                            <Text style={styles.DroneId}>{JSON.parse(data[i]['drone']['S'])['drone_id']}</Text>
+                        data.map((v, i) => {
+                            if (i === 0 && data[i]['timestamp']['N'] === 0) {
+                                <View></View>
+                            } else {
+                                return (
+                                    <View style={styles.RecordWrapper} key={i}>
+                                        <View style={styles.RecordMap}>
+                                            <Image
+                                                source={require('../assets/maptest.png')}
+                                                style={styles.RecordMapSize}>
+                                            </Image>
                                         </View>
-                                        <View style={styles.dateContainerTwo}>
-                                            <TouchableOpacity style={styles.MenuContainer}>
-                                                <Image
-                                                    source={require('../assets/setmenu.png')}
-                                                    style={styles.SetMenu} >
-                                                </Image>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </View>
-                                    <View style={styles.TextBox}>
-                                        <View style={styles.boxAddress}>
-                                            <View style={styles.addressIcon}>
-                                                {
-                                                    [...Array(2)].map((v, i) =>
-                                                        <View style={styles.circleContainer} key={i}>
-                                                            <View style={styles.circle}></View>
+                                        <View style={styles.RecordTextWrapper}>
+                                            <View style={styles.RecordDateIdMenu}>
+                                                <View style={styles.dateContainer}>
+                                                    <Text style={styles.Date}>{Number(data[i]["timestamp"]["N"])}</Text>
+                                                    <Text style={styles.DroneId}>{JSON.parse(data[i]['drone']['S'])['drone_id']}</Text>
+                                                </View>
+                                                <View style={styles.dateContainerTwo}>
+                                                    <TouchableOpacity style={styles.MenuContainer}>
+                                                        <Image
+                                                            source={require('../assets/setmenu.png')}
+                                                            style={styles.SetMenu} >
+                                                        </Image>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </View>
+                                            <View style={styles.TextBox}>
+                                                <View style={styles.boxAddress}>
+                                                    <View style={styles.addressIcon}>
+                                                        {
+                                                            [...Array(2)].map((v, i) =>
+                                                                <View style={styles.circleContainer} key={i}>
+                                                                    <View style={styles.circle}></View>
+                                                                </View>
+                                                            )
+                                                        }
+                                                    </View>
+                                                    <View style={styles.addressText}>
+                                                        <View style={styles.textContainer}>
+                                                            <Text style={styles.textText}>{JSON.parse(data[i]['drone']['S'])['start']['address']}</Text>
                                                         </View>
-                                                    )
-                                                }
-                                            </View>
-                                            <View style={styles.addressText}>
-                                                <View style={styles.textContainer}>
-                                                    <Text style={styles.textText}>{JSON.parse(data[i]['drone']['S'])['start']['address']}</Text>
+                                                        <View style={styles.textContainer}>
+                                                            <Text style={styles.textText}>{JSON.parse(data[i]['drone']['S'])['end']['address']}</Text>
+                                                        </View>
+                                                    </View>
                                                 </View>
-                                                <View style={styles.textContainer}>
-                                                    <Text style={styles.textText}>{JSON.parse(data[i]['drone']['S'])['end']['address']}</Text>
+                                                <View style={styles.boxLine}>
+                                                    <View style={styles.line}></View>
                                                 </View>
-                                            </View>
-                                        </View>
-                                        <View style={styles.boxLine}>
-                                            <View style={styles.line}></View>
-                                        </View>
-                                        <View style={styles.boxDetail}>
-                                            <View style={styles.detailContainer}>
-                                                <Text style={styles.detailTitle}>주행거리</Text>
-                                                <Text style={styles.detailText}>{`${JSON.parse(data[i]['drone']['S']).distance}분`}</Text>
-                                            </View>
-                                            <View style={styles.detailContainer}>
-                                                <Text style={styles.detailTitle}>비행시간</Text>
-                                                <Text style={styles.detailText}>{`${JSON.parse(data[i]['drone']['S']).time}분`}</Text>
+                                                <View style={styles.boxDetail}>
+                                                    <View style={styles.detailContainer}>
+                                                        <Text style={styles.detailTitle}>주행거리</Text>
+                                                        <Text style={styles.detailText}>{`${JSON.parse(data[i]['drone']['S'])['distance']}분`}</Text>
+                                                    </View>
+                                                    <View style={styles.detailContainer}>
+                                                        <Text style={styles.detailTitle}>비행시간</Text>
+                                                        <Text style={styles.detailText}>{`${JSON.parse(data[i]['drone']['S'])['time']}분`}</Text>
+                                                    </View>
+                                                </View>
                                             </View>
                                         </View>
                                     </View>
-                                </View>
-                            </View>
+                                )
+                            }
+                        }
                         )
                     }
 

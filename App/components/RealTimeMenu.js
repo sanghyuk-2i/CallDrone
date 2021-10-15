@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View, Animated, Dimensions, TouchableOpacity, Image, TextInput, PanResponder, Share, LogBox } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Back from './common/Back';
-import MapView from './map.html';
+import MapView from './webview/map_real.html';
 
 // import '../shim';
 // import Iotcore from './Iotcore';

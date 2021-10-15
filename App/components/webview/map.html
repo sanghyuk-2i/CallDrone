@@ -96,9 +96,9 @@
             locationData.lat= lat;
 
             const result = `
-            <div style="display:flex;flex-direction:column;justify-content:center;padding:5px;">
-                <button style="width:100%" onclick="onPressTwo(1)">출발</button>
-                <button style="" onclick="onPressTwo(0)">도착</button>
+            <div style="display:flex;flex-direction:row;justify-content:space-around;padding:5px;width:100%;">
+                <button style="width:62px;height:40px;color:green;" onclick="onPressTwo(1)">출발</button>
+                <button style="width:62px;height:40px;color:red;" onclick="onPressTwo(0)">도착</button>
             </div>
             `;
             return result;
@@ -212,7 +212,7 @@
             const result = `
             <div style="display:flex;flex-direction:column;justify-content:center;padding:5px;">
             <h4 style="width:100%;font-size:12px;">${locationData.name}</h4>
-            <button style="" onclick="onPress()">${btn}</button>
+            <button style="width:150px" onclick="onPress()">${btn}</button>
             </div>
             `;
             return result;

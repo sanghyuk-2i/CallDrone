@@ -4,7 +4,7 @@ import { StyleSheet, Text, View, Animated, Dimensions, TouchableOpacity, Image, 
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import Back from './common/Back';
-import MapView from './map.html';
+import MapView from './webview/map.html';
 
 export default function DeliveryMenu({ route, navigation, user }) {
 
@@ -14,7 +14,7 @@ export default function DeliveryMenu({ route, navigation, user }) {
 
   useEffect(() => {
     slideUp();
-    Iot.connect()
+    Iot.connect();
   }, [])
 
   useEffect(() => {
@@ -27,7 +27,8 @@ export default function DeliveryMenu({ route, navigation, user }) {
     status: 'ready',
     start: { name: "", address: "", lat: 0, lon: 0 },
     end: { name: "", address: "", lat: 0, lon: 0 },
-    box: 9
+    box: 9,
+    user_id: user.id
   });
 
   // const Iot = new Iotcore()

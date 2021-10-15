@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map</title>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=74adc06c5b4c23a527251cfaa36e4d72&libraries&libraries=services,clusterer,drawing"></script>
+    <style>
+        * {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none; 
+        }
+        body{
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        let infowindow = new kakao.maps.InfoWindow({zIndex:1});
+
+        let container = document.getElementById('map'); 
+        let options = { 
+            center: new kakao.maps.LatLng(33.450701, 126.570667), 
+            level: 3 
+        };
+
+        let map = new kakao.maps.Map(container, options);
+     
+        let destination = '출발';
+        const locationData = {
+            state: "",
+            name: "",
+            address: "",
+            lon: "",
+            lat: ""
+        }
+
+        let searchMarker = [];
+        let startMarker = new kakao.maps.MarkerImage(
+            'https://cdn-icons-png.flaticon.com/512/1281/1281188.png',
+            new kakao.maps.Size(30, 30)
+        );
+        let endMarker = new kakao.maps.Marker();
+        let currentMarker = new kakao.maps.Marker();
+
+        let ps = new kakao.maps.services.Places();
+
+        let marker = new kakao.maps.Marker({ 
+            position: map.getCenter() 
+        }); 
+        marker.setMap(map);
+        
+        // kakao.maps.event.addListener(map, 'click', function(mouseEvent) {                
+        //     let latlng = mouseEvent.latLng; 
+    
+        //     marker.setPosition(latlng);
+
+        //     let geocoder = new kakao.maps.services.Geocoder();
+
+        //     let callback = function(result, status) {
+        //         if (status === kakao.maps.services.Status.OK) {
+        //             infowindow.setContent(windowTwoContent(result[0].address, current_lat, current_lng));
+        //             infowindow.open(map, marker);
+        //             // window.ReactNativeWebView.postMessage(result[0].address.address_name);
+        //         }
+        //         return true;
+        //     };
+
+        //     let current_lat = marker.getPosition().getLat();
+        //     let current_lng = marker.getPosition().getLng();
+
+        //     geocoder.coord2Address(current_lng, current_lat, callback);
+
+            
+        //     // let message = '클릭한 위치의 위도는 ' + latlng.getLat() + ' 이고, ';
+        //     // message += '경도는 ' + latlng.getLng() + ' 입니다';
+        // });
+
+
+        let polyline = new kakao.maps.Polyline();
+        
+        function realTimeSetting(json){
+            console.log('html!')
+            let data = JSON.parse(json);
+            console.log(data);
+
+            startMarker.setPosition(new kakao.maps.LatLng(data.start.lat, data.start.lon))
+            endMarker.setPosition(new kakao.maps.LatLng(data.end.lat, data.end.lon))
+;
+            startMarker.setMap(map);
+            endMarker.setMap(map);
+
+            let bounds = new kakao.maps.LatLngBounds();
+            bounds.extend(startMarker.getPosition());
+            bounds.extend(endMarker.getPosition());
+
+            let linePath = [startMarker.getPosition(), endMarker.getPosition()];
+
+            polyline.setOptions({
+                path: linePath,
+                strokeWeight: 5,
+                strokeColor: '#47FF5A',
+                strokeOpacity: 0.7, 
+                strokeStyle: 'solid' 
+            })
+            polyline.setMap(map);
+
+            map.setBounds(bounds);
+        }
+
+        function realTimeCurrent(lat, lon){
+            currentMarker.setMap(map);
+            currentMarker.setPosition(new kakao.maps.LatLng(lat, lon));
+            map.setCenter(currentMarker.getPosition());
+
+            let geocoder = new kakao.maps.services.Geocoder();
+
+            let callback = function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    window.ReactNativeWebView.postMessage(result[0].address.address_name);
+                }
+                return true;
+            };
+
+            let current_lat = currentMarker.getPosition().getLat();
+            let current_lng = currentMarker.getPosition().getLng();
+
+            geocoder.coord2Address(current_lng, current_lat, callback);
+        }
+
+        function clearingMap() {
+            startMarker.setMap(null);
+            endMarker.setMap(null);
+            currentMarker.setMap(null);
+            polyline.setMap(null);
+        }
+        
+    </script>
+</body>
+</html>

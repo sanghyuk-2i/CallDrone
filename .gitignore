@@ -9,12 +9,15 @@
 # Expo Setting
 /App/.expo
 /App/.expo-shared
+/.expo
+
 
 # Package 
 /App/package.json
 
 # Yarn Lock
 /App/yarn.lock
+
 
 #####   Cloud Part  #####
 

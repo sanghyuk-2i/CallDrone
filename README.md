@@ -83,9 +83,9 @@ Software
 
 ## 제품 사진
 
-![드론 사진](https://lab.hanium.or.kr/21_HI024/21_hi024/blob/master/Doc/drone_image.jpg)
+![드론 사진](Doc/drone_image.jpg)
 
-![앱 섬네일 사진](https://lab.hanium.or.kr/21_HI024/21_hi024/blob/master/Doc/calldrone_thumbnail.jpg)
+![앱 섬네일 사진](Doc/calldrone_thumbnail.jpg)
 
 ## 동작 영상
 

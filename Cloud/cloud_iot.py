@@ -28,9 +28,9 @@ class Connection:
         )
 
 
-        # Make the connect() call
+
         connect_future = self.mqtt_connection.connect()
-        # Future.result() waits until a result is available
+        
         connect_future.result()
         print("Connected!")
     
@@ -60,10 +60,3 @@ class Connection:
     #     # self.received_count += 1
         # if self.received_count == 10:
             # self.received_all_event.set()
-
-
-
-# connect = Connection()
-# connect.listenMessage('delivery/request');
-# connect.sendMessage('ICT-01', json.dumps({'status': 'flying', 'start':{'lat':0, 'lon': 0, 'address': '경기도'}}), 'delivery/response')
-# connect.received_all_event.wait()

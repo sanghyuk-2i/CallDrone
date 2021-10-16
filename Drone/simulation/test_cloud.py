@@ -3,14 +3,7 @@
 # 팀명 : 인터셉터
 # 마지막 수정일 : 2021-07-31
 
-# 코드 참고 링크(Thanks to)
-# DroneKit Offical Documents : https://dronekit-python.readthedocs.io/en/latest/about/index.html
-
-# 기능 설명
-# 1. 드론이 한 지점(현재 위치)에서 앞, 뒤, 좌, 우 테스트               ----- 개발 완료
-# 2. 드론이 한 지점(현재 위치)에서 다른 위치(목적지)로 이동             ----- 개발 완료
-# 3. 드론의 상태 Log들을 클라우드로 전송                            ----- 개발 완료
-
+# Simulation 버전
 
 
 # {
@@ -103,21 +96,15 @@ class Drone:
     def takeOffAlitude(self, air_speed, set_alt):
         global command_check
         self.vehicle.airspeed = air_speed
+        cal_alt = set_alt * 2
         
         print('드론 이륙!!!')
         self.vehicle.simple_takeoff(set_alt)
 
-        cloud_connect.sendMessage({
-            'status': 'flying',
-            'lat': self.checkCurrentLocation()['lat'],
-            'lon': self.checkCurrentLocation()['lon'],
-            'time': 0
-        }, 'delivery/response')
-
         while True:
             drone_alt = self.vehicle.location.global_relative_frame.alt
             print(f'현재 고도 : {drone_alt}')
-            if(drone_alt >= set_alt * 0.95):
+            if(drone_alt >= cal_alt * 0.5):
                 print(f'목표 고도에 도달 : {set_alt}')
                 command_check = True
                 break
@@ -184,14 +171,12 @@ class Drone:
                 }, 'database')
                 break
             time.sleep(1)
-
-        self.vehicle.armed = False
+            
         self.vehicle.close()
 
     def droneStatusLog(self):
         log = {
             "GPS": str(self.vehicle.gps_0),
-            "Battery": self.checkBattery(self.vehicle.battery),
             "Heartbeat": str(self.vehicle.last_heartbeat),
             "Mode": str(self.vehicle.mode.name),
             "System Status": str(self.vehicle.system_status.state),
@@ -200,13 +185,15 @@ class Drone:
         }
         return log
 
-    def checkBattery(self, battery):
-        result = {
-            "voltage": battery.voltage,
-            "current": battery.current,
-            "level": battery.level
-        }
-        return result 
+    def checkBattery(self):
+        bat = self.vehicle.battery
+        # result = {
+        #     "voltage": bat.voltage,
+        #     "current": bat.current,
+        #     "level": bat.level
+        # }
+        # return result
+        return bat.current
 
     def checkCurrentLocation(self):
         current_gps=self.vehicle.location.global_relative_frame
@@ -286,13 +273,13 @@ while(True):
                     'id': '#' + str(current_id),
                     'model': drone.getModel(),
                     'status': 'ON',
-                    'altitude': 0,
-                    'battery': 0,
-                    'temperature': 0,
-                    'gps': '',
-                    'connection': '',
-                    'speed': 0,
-                    'rotation': 0
+                    'altitude': '',
+                    'battery': drone.checkBattery(),
+                    'temperature': 25,
+                    'gps': 'ON',
+                    'connection': 'ON',
+                    'speed': 3,
+                    'rotation': 0,
                     'location': { 'lat': drone.checkCurrentLocation()['lat'], 'lon': drone.checkCurrentLocation()['lon'] }
                 }, 'drone')
             else:
